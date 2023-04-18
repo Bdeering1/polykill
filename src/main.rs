@@ -1,6 +1,12 @@
+use std::path::Path;
+
 mod project;
-mod types;
+mod search;
+mod project_types;
 
 fn main() {
-    println!("Hello, world!");
+    let projects = search::find_git_projects(Path::new("../../"));
+    for project in projects {
+        println!("{}", project);
+    }
 }
