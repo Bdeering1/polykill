@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use crate::project::Project;
-use crate::project_types::{is_repo, is_node, is_cargo, is_mix, is_dotnet, ProjectType};
+use crate::project_type::{is_repo, is_node, is_cargo, is_mix, is_dotnet};
 
 pub fn find_projects(path: &Path) -> Vec<Project> {
     let mut projects = Vec::new();
@@ -14,15 +14,14 @@ pub fn find_projects(path: &Path) -> Vec<Project> {
         let path = entry.unwrap().path();
         if !path.is_dir() { continue; }
 
-        let path_name = path.to_str().unwrap().to_string();
         if is_node(&path) {
-            projects.push(Project::new(path_name, ProjectType::Node, vec![]));
+            projects.push(Project::node(path));
         } else if is_cargo(&path) {
-            projects.push(Project::new(path_name, ProjectType::Cargo, vec![]));
+            projects.push(Project::cargo(path));
         } else if is_mix(&path) {
-            projects.push(Project::new(path_name, ProjectType::Mix, vec![]));
+            projects.push(Project::mix(path));
         } else if is_dotnet(&path) {
-            projects.push(Project::new(path_name, ProjectType::Dotnet, vec![]));
+            projects.push(Project::dotnet(path));
         } else {
             projects.append(&mut find_projects(&path));
         }
@@ -42,15 +41,14 @@ pub fn find_git_projects(path: &Path) -> Vec<Project> {
         if !path.is_dir() { continue; }
 
         if is_repo(&path) {
-            let path_name = path.to_str().unwrap().to_string();
             if is_node(&path) {
-                projects.push(Project::node(path_name));
+                projects.push(Project::node(path));
             } else if is_cargo(&path) {
-                projects.push(Project::cargo(path_name));
+                projects.push(Project::cargo(path));
             } else if is_mix(&path) {
-                projects.push(Project::mix(path_name));
+                projects.push(Project::mix(path));
             } else if is_dotnet(&path) {
-                projects.push(Project::dotnet(path_name));
+                projects.push(Project::dotnet(path));
             } else {
                 projects.append(&mut find_projects(&path));
             }

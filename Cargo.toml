@@ -3,6 +3,7 @@ name = "polykill"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
+authors = ["Bryn Deering"]
 description = "Command line tool for removing dependencies and build artifacts from unused projects."
 readme = "README.md"
 
@@ -10,3 +11,4 @@ readme = "README.md"
 
 [dependencies]
 bytesize = "1.2.0"
+clap = { version = "4.2.2", features = ["derive"]}

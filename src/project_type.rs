@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::fmt::{Formatter, Display};
 
 #[derive(Debug)]
 pub enum ProjectType {
@@ -6,6 +7,12 @@ pub enum ProjectType {
     Cargo,
     Dotnet,
     Mix
+}
+
+impl Display for ProjectType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 pub fn is_node(path: &Path) -> bool {

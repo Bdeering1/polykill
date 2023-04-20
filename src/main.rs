@@ -1,12 +1,15 @@
 use std::path::Path;
+use clap::Parser;
+use project::print_projects;
 
+mod args;
 mod project;
 mod search;
-mod project_types;
+mod project_type;
 
 fn main() {
-    let projects = search::find_git_projects(Path::new("../../"));
-    for project in projects {
-        println!("{}", project);
-    }
+    let args = args::PolykillArgs::parse();
+
+    let projects = search::find_git_projects(Path::new(args.dir.as_str()));
+    print_projects(&projects);
 }
