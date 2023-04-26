@@ -62,7 +62,7 @@ pub fn print_projects(projects: &Vec<Project>) {
         }
     }
     max_size_len += 2;
-    
+
     println!("{}{}{}{}\n",
         format!("{:<width$}", "Path", width=(max_path_len + MIN_PADDING)),
         format!("{:<width$}", "Type", width=PROJECT_TYPE_PADDING),
