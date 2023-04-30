@@ -211,15 +211,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9b085a4f2cde5781fc4b1717f2e86c62f5cda49de7ba99a7c2eae02b61c9064c"
 
 [[package]]
-name = "menu_rs"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de2a30bc93611302a2a6630f18de41af5d96f76ee00f5b2773b1b9d4a67d0e29"
-dependencies = [
- "console",
-]
-
-[[package]]
 name = "once_cell"
 version = "1.17.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -231,7 +222,7 @@ version = "0.1.0"
 dependencies = [
  "bytesize",
  "clap",
- "menu_rs",
+ "console",
 ]
 
 [[package]]

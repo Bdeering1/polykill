@@ -43,47 +43,13 @@ impl Project {
         let rm_dirs = vec![PathBuf::from("bin"), PathBuf::from("obj")];
         Project::new(path, ProjectType::Dotnet, rm_dirs)
     }
-}
 
-pub fn print_projects(projects: &Vec<Project>) {
-    const MIN_PADDING: usize = 10;
-    const PROJECT_TYPE_PADDING: usize = 8;
-    const LAST_MOD_PADDING: usize = 10;
-    let mut max_path_len = 0;
-    let mut max_size_len = 0;
-
-    for project in projects {
-        let path_name = project.path.to_str().unwrap().to_string();
-        if path_name.len() > max_path_len {
-            max_path_len = path_name.len();
-        }
-        if project.rm_size_str.len() > max_size_len {
-            max_size_len = project.rm_size_str.len();
-        }
-    }
-    max_size_len += 2;
-
-    println!("{}{}{}{}\n",
-        format!("{:<width$}", "Path", width=(max_path_len + MIN_PADDING)),
-        format!("{:<width$}", "Type", width=PROJECT_TYPE_PADDING),
-        format!("{:>width$}", "Last Mod.", width=LAST_MOD_PADDING),
-        format!("{:>width$}", "Size", width=max_size_len),
-    );
-    print!("{}{}{}{}\n",
-        format!("{:<width$}", "----", width=(max_path_len + MIN_PADDING)),
-        format!("{:<width$}", "----", width=PROJECT_TYPE_PADDING),
-        format!("{:>width$}", "----", width=LAST_MOD_PADDING),
-        format!("{:>width$}", "----", width=max_size_len),
-    );
-    for project in projects {
-        println!("{}{}{}{}",
-            format!("{:<width$}", project.path.display(), width=(max_path_len + MIN_PADDING)),
-            format!("{:<width$}", project.project_type.to_string(), width=PROJECT_TYPE_PADDING),
-            format!("{:>width$}", project.last_modified, width=LAST_MOD_PADDING),
-            format!("{:>width$}", project.rm_size_str, width=max_size_len),
-        );
+    pub fn delete(&self) { 
+        println!("Deleting: {:?}", self.path);
+        //let _ = std::fs::remove_dir_all(dir);
     }
 }
+
 
 fn get_time_since_last_mod(path: &PathBuf) -> String {
     const SECONDS_PER_DAY: u64 = 86400;
@@ -129,4 +95,9 @@ fn dir_size(path: PathBuf) -> io::Result<u64> {
     }
 
     dir_size(read_dir(path)?)
+}
+
+pub fn delete(dir: PathBuf) {
+    println!("Deleting: {:?}", dir);
+    //let _ = std::fs::remove_dir_all(dir);
 }

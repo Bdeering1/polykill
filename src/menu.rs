@@ -1,4 +1,4 @@
-use menu_rs::{MenuOption, Menu};
+use console::{Term, Key};
 
 use crate::project::Project;
 
@@ -30,19 +30,18 @@ pub fn project_menu(projects: &Vec<Project>) {
         format!("{:<width$}", "----", width=(max_path_len + MIN_PADDING)),
         format!("{:<width$}", "----", width=PROJECT_TYPE_PADDING),
         format!("{:>width$}", "----", width=LAST_MOD_PADDING),
-        format!("{:>width$}", "----", width=max_size_len),
+        format!("{:>width$}", "----", width=max_size_len), 
     );
 
-    let mut menu_items: Vec<MenuOption> = vec![];
+    let mut menu_items: Vec<MenuItem> = vec![];
     for project in projects {
-        let menu_item = MenuOption::new(
+        let menu_item = MenuItem::new(
             &format!("{}{}{}{}",
                 format!("{:<width$}", project.path.display(), width=(max_path_len + MIN_PADDING)),
                 format!("{:<width$}", project.project_type.to_string(), width=PROJECT_TYPE_PADDING),
                 format!("{:>width$}", project.last_modified, width=LAST_MOD_PADDING),
                 format!("{:>width$}", project.rm_size_str, width=max_size_len),
-            ),
-            noop
+            )
         );
         menu_items.push(menu_item);
     }
@@ -50,4 +49,85 @@ pub fn project_menu(projects: &Vec<Project>) {
     menu.show();
 }
 
-fn noop() {}
+
+pub struct MenuItem {
+    pub label: String
+}
+
+impl MenuItem {
+    pub fn new(label: &str) -> Self {
+        Self {
+            label: label.to_owned()
+        }
+    }
+}
+
+pub struct Menu {
+    items: Vec<MenuItem>,
+    selected_item: usize
+}
+
+impl Menu {
+    pub fn new(items: Vec<MenuItem>) -> Self {
+        Self {
+            items,
+            selected_item: 0
+        }
+    }
+
+    pub fn show(mut self) {
+        let stdout = Term::buffered_stdout();
+        stdout.hide_cursor().unwrap();
+    
+        stdout.clear_screen().unwrap();
+        self.draw(&stdout);
+        self.run_navigation(&stdout);
+    }
+
+    fn run_navigation(&mut self, stdout: &Term) {
+        let num_options = self.items.len() - 1;
+        loop {
+            let key = stdout.read_key();
+            if key.is_err() { println!("Error reading keystroke"); return; }
+            let key = key.unwrap();
+
+            match key {
+                Key::ArrowUp => {
+                    if self.selected_item != 0 { self.selected_item -= 1 }
+                }
+                Key::ArrowDown => {
+                   if self.selected_item != num_options { self.selected_item += 1 }
+                }
+                Key::Escape => {
+                    stdout.show_cursor().unwrap();
+                    return;
+                }
+                Key::Enter => {
+                    // run action here
+                    stdout.show_cursor().unwrap();
+                    return;
+                }
+                Key::Char(c) => println!("char {}", c),
+                _ => {}
+            }
+
+            self.draw(stdout);
+        }
+    }
+
+    fn draw(&self, stdout: &Term) {
+        stdout.clear_screen().unwrap();
+
+        // draw title here
+
+        for (i, option) in self.items.iter().enumerate() {
+            if i == self.selected_item {
+                stdout.write_line(&format!("> {}", option.label)).unwrap();
+            } else {
+                stdout.write_line(&format!("  {}", option.label)).unwrap();
+            }
+        }
+
+        stdout.flush().unwrap();
+    }
+}   
