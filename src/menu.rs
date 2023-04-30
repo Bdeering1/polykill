@@ -20,13 +20,11 @@ pub fn project_menu(projects: &Vec<Project>) {
     }
     max_size_len += 2;
 
-    println!("{}{}{}{}\n",
+    let menu_title = format!("  {}{}{}{}\n  {}{}{}{}",
         format!("{:<width$}", "Path", width=(max_path_len + MIN_PADDING)),
         format!("{:<width$}", "Type", width=PROJECT_TYPE_PADDING),
         format!("{:>width$}", "Last Mod.", width=LAST_MOD_PADDING),
         format!("{:>width$}", "Size", width=max_size_len),
-    );
-    print!("{}{}{}{}\n",
         format!("{:<width$}", "----", width=(max_path_len + MIN_PADDING)),
         format!("{:<width$}", "----", width=PROJECT_TYPE_PADDING),
         format!("{:>width$}", "----", width=LAST_MOD_PADDING),
@@ -45,7 +43,8 @@ pub fn project_menu(projects: &Vec<Project>) {
         );
         menu_items.push(menu_item);
     }
-    let menu = Menu::new(menu_items);
+    let mut menu = Menu::new(menu_items);
+    menu.title(&menu_title);
     menu.show();
 }
 
@@ -63,6 +62,7 @@ impl MenuItem {
 }
 
 pub struct Menu {
+    title: Option<String>,
     items: Vec<MenuItem>,
     selected_item: usize
 }
@@ -70,12 +70,17 @@ pub struct Menu {
 impl Menu {
     pub fn new(items: Vec<MenuItem>) -> Self {
         Self {
+            title: None,
             items,
             selected_item: 0
         }
     }
 
-    pub fn show(mut self) {
+    pub fn title(&mut self, title: &str) {
+        self.title = Some(title.to_owned());
+    }
+
+    pub fn show(&mut self) {
         let stdout = Term::buffered_stdout();
         stdout.hide_cursor().unwrap();
     
@@ -118,7 +123,9 @@ impl Menu {
     fn draw(&self, stdout: &Term) {
         stdout.clear_screen().unwrap();
 
-        // draw title here
+        if let Some(title) = &self.title {
+            stdout.write_line(title).unwrap();
+        }
 
         for (i, option) in self.items.iter().enumerate() {
             if i == self.selected_item {

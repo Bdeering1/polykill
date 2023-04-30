@@ -2,14 +2,19 @@ use std::path::Path;
 use clap::Parser;
 use menu::project_menu;
 
-mod args;
 mod menu;
 mod project;
-mod project_type;
 mod search;
 
+#[derive(Debug, Parser)]
+#[clap(author, about, version)]
+pub struct PolykillArgs {
+    /// The directory to search for projects
+    pub dir: String
+}
+
 fn main() {
-    let args = args::PolykillArgs::parse();
+    let args = PolykillArgs::parse();
     
     println!("Searching for projects...");
     let projects = search::find_git_projects(Path::new(args.dir.as_str()));

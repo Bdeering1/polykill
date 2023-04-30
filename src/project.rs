@@ -4,7 +4,7 @@ use std::io;
 use std::time::{SystemTime, Duration};
 use bytesize::ByteSize;
 
-use crate::project_type::ProjectType;
+use crate::search::ProjectType;
 
 #[derive(Debug)]
 pub struct Project {
@@ -43,11 +43,6 @@ impl Project {
         let rm_dirs = vec![PathBuf::from("bin"), PathBuf::from("obj")];
         Project::new(path, ProjectType::Dotnet, rm_dirs)
     }
-
-    pub fn delete(&self) { 
-        println!("Deleting: {:?}", self.path);
-        //let _ = std::fs::remove_dir_all(dir);
-    }
 }
 
 
@@ -72,8 +67,8 @@ fn get_rm_size(path: &PathBuf, rm_dirs: &Vec<PathBuf>) -> u64 {
     let mut size = 0;
     for dir in rm_dirs {
         let path_exists = path.join(dir).try_exists();
-
         if path_exists.is_err() { continue; /* handle error */ }
+        
         let dir_size = dir_size(path.join(dir));
         if dir_size.is_err() { continue; /* handle error */ }
 
