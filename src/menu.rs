@@ -1,6 +1,8 @@
-use console::{Term, Key};
+use std::path::PathBuf;
 
-use crate::project::Project;
+use console::{Term, Key, Style};
+
+use crate::project::{Project, delete};
 
 pub fn project_menu(projects: &Vec<Project>) {
     const MIN_PADDING: usize = 10;
@@ -33,14 +35,13 @@ pub fn project_menu(projects: &Vec<Project>) {
 
     let mut menu_items: Vec<MenuItem> = vec![];
     for project in projects {
-        let menu_item = MenuItem::new(
-            &format!("{}{}{}{}",
-                format!("{:<width$}", project.path.display(), width=(max_path_len + MIN_PADDING)),
-                format!("{:<width$}", project.project_type.to_string(), width=PROJECT_TYPE_PADDING),
-                format!("{:>width$}", project.last_modified, width=LAST_MOD_PADDING),
-                format!("{:>width$}", project.rm_size_str, width=max_size_len),
-            )
-        );
+        let label = format!("{}{}{}{}",
+            format!("{:<width$}", project.path.display(), width=(max_path_len + MIN_PADDING)),
+            format!("{:<width$}", project.project_type.to_string(), width=PROJECT_TYPE_PADDING),
+            format!("{:>width$}", project.last_modified, width=LAST_MOD_PADDING),
+            format!("{:>width$}", project.rm_size_str, width=max_size_len));
+        let action = MenuAction::Delete(project.path.to_owned());
+        let menu_item = MenuItem::new(&label, action);
         menu_items.push(menu_item);
     }
     let mut menu = Menu::new(menu_items);
@@ -49,14 +50,20 @@ pub fn project_menu(projects: &Vec<Project>) {
 }
 
 
+pub enum MenuAction {
+    Delete(PathBuf)
+}
+
 pub struct MenuItem {
-    pub label: String
+    pub label: String,
+    pub action: MenuAction
 }
 
 impl MenuItem {
-    pub fn new(label: &str) -> Self {
+    pub fn new(label: &str, action: MenuAction) -> Self {
         Self {
-            label: label.to_owned()
+            label: label.to_owned(),
+            action
         }
     }
 }
@@ -82,9 +89,10 @@ impl Menu {
 
     pub fn show(&mut self) {
         let stdout = Term::buffered_stdout();
+
         stdout.hide_cursor().unwrap();
-    
         stdout.clear_screen().unwrap();
+
         self.draw(&stdout);
         self.run_navigation(&stdout);
     }
@@ -92,9 +100,7 @@ impl Menu {
     fn run_navigation(&mut self, stdout: &Term) {
         let num_options = self.items.len() - 1;
         loop {
-            let key = stdout.read_key();
-            if key.is_err() { println!("Error reading keystroke"); return; }
-            let key = key.unwrap();
+            let key = stdout.read_key().unwrap();
 
             match key {
                 Key::ArrowUp => {
@@ -105,14 +111,13 @@ impl Menu {
                 }
                 Key::Escape => {
                     stdout.show_cursor().unwrap();
-                    return;
+                    break;
                 }
                 Key::Enter => {
-                    // run action here
+                    self.run_action(&self.items[self.selected_item].action);
                     stdout.show_cursor().unwrap();
-                    return;
+                    break;
                 }
-                Key::Char(c) => println!("char {}", c),
                 _ => {}
             }
 
@@ -124,17 +129,27 @@ impl Menu {
         stdout.clear_screen().unwrap();
 
         if let Some(title) = &self.title {
-            stdout.write_line(title).unwrap();
+            let style = Style::new().bold();
+            stdout.write_line(&format!("{}", style.apply_to(title))).unwrap();
         }
 
         for (i, option) in self.items.iter().enumerate() {
             if i == self.selected_item {
-                stdout.write_line(&format!("> {}", option.label)).unwrap();
+                let style = Style::new().bold();
+                stdout.write_line(&format!("> {}", style.apply_to(&option.label))).unwrap();
             } else {
                 stdout.write_line(&format!("  {}", option.label)).unwrap();
             }
         }
 
         stdout.flush().unwrap();
+    }
+
+    fn run_action(&self, action: &MenuAction) {
+        match action {
+            MenuAction::Delete(path) => {
+                delete(path);
+            }
+        }
     }
 }   

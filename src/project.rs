@@ -1,10 +1,9 @@
+use std::fmt::{Display, Formatter};
 use std::fs::{ReadDir, metadata, read_dir};
 use std::path::PathBuf;
 use std::io;
 use std::time::{SystemTime, Duration};
 use bytesize::ByteSize;
-
-use crate::search::ProjectType;
 
 #[derive(Debug)]
 pub struct Project {
@@ -45,6 +44,19 @@ impl Project {
     }
 }
 
+#[derive(Debug)]
+pub enum ProjectType {
+    Node,
+    Cargo,
+    Dotnet,
+    Mix
+}
+
+impl Display for ProjectType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
 
 fn get_time_since_last_mod(path: &PathBuf) -> String {
     const SECONDS_PER_DAY: u64 = 86400;
@@ -68,7 +80,7 @@ fn get_rm_size(path: &PathBuf, rm_dirs: &Vec<PathBuf>) -> u64 {
     for dir in rm_dirs {
         let path_exists = path.join(dir).try_exists();
         if path_exists.is_err() { continue; /* handle error */ }
-        
+
         let dir_size = dir_size(path.join(dir));
         if dir_size.is_err() { continue; /* handle error */ }
 
@@ -92,7 +104,7 @@ fn dir_size(path: PathBuf) -> io::Result<u64> {
     dir_size(read_dir(path)?)
 }
 
-pub fn delete(dir: PathBuf) {
+pub fn delete(dir: &PathBuf) {
     println!("Deleting: {:?}", dir);
     //let _ = std::fs::remove_dir_all(dir);
 }

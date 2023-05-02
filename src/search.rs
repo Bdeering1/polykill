@@ -1,4 +1,4 @@
-use std::{path::Path, fmt::{Display, Formatter}};
+use std::path::Path;
 
 use crate::project::Project;
 
@@ -58,20 +58,6 @@ pub fn find_git_projects(path: &Path) -> Vec<Project> {
     projects
 }
 
-
-#[derive(Debug)]
-pub enum ProjectType {
-    Node,
-    Cargo,
-    Dotnet,
-    Mix
-}
-
-impl Display for ProjectType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
 
 pub fn is_node(path: &Path) -> bool {
     contains_file(path, "package.json") 
