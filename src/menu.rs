@@ -40,7 +40,7 @@ pub fn project_menu(projects: &Vec<Project>) {
             format!("{:<width$}", project.project_type.to_string(), width=PROJECT_TYPE_PADDING),
             format!("{:>width$}", project.last_modified, width=LAST_MOD_PADDING),
             format!("{:>width$}", project.rm_size_str, width=max_size_len));
-        let action = MenuAction::Delete(project.path.to_owned());
+        let action = MenuAction::Delete(project.rm_dirs.to_owned());
         let menu_item = MenuItem::new(&label, action);
         menu_items.push(menu_item);
     }
@@ -51,7 +51,7 @@ pub fn project_menu(projects: &Vec<Project>) {
 
 
 pub enum MenuAction {
-    Delete(PathBuf)
+    Delete(Vec<PathBuf>)
 }
 
 pub struct MenuItem {
@@ -147,9 +147,9 @@ impl Menu {
 
     fn run_action(&self, action: &MenuAction) {
         match action {
-            MenuAction::Delete(path) => {
-                delete(path);
+            MenuAction::Delete(dirs) => {
+                delete(dirs);
             }
         }
     }
-}   
+}
