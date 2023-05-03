@@ -9,14 +9,28 @@ mod search;
 #[derive(Debug, Parser)]
 #[clap(author, about, version)]
 pub struct PolykillArgs {
+    #[clap(default_value_t = String::from("."))]
     /// The directory to search for projects
     pub dir: String
 }
 
 fn main() {
     let args = PolykillArgs::parse();
+    let path = Path::new(args.dir.as_str());
+    if !path.exists() {
+        println!("Directory '{}' does not exist.", path.display());
+        return;
+    }
+    if path.is_file() {
+        println!("'{}' is a file, please specify a directory.", path.display());
+        return;
+    }
     
     println!("Searching for projects...");
-    let projects = search::find_git_projects(Path::new(args.dir.as_str()));
+    let projects = search::find_git_projects(path);
+    if projects.is_empty() {
+        println!("No projects found.");
+        return;
+    }
     project_menu(&projects);
 }

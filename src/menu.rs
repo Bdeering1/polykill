@@ -98,7 +98,7 @@ impl Menu {
     }
 
     fn run_navigation(&mut self, stdout: &Term) {
-        let num_options = self.items.len() - 1;
+        let num_options = self.items.len();
         loop {
             let key = stdout.read_key().unwrap();
 
@@ -107,9 +107,9 @@ impl Menu {
                     if self.selected_item != 0 { self.selected_item -= 1 }
                 }
                 Key::ArrowDown => {
-                   if self.selected_item != num_options { self.selected_item += 1 }
+                   if self.selected_item < num_options - 1 { self.selected_item += 1 }
                 }
-                Key::Escape => {
+                Key::Escape | Key::Char('q') => {
                     stdout.show_cursor().unwrap();
                     break;
                 }

@@ -24,7 +24,7 @@ Polykill will recursively search for supported projects in the provided director
 
 Move between listed projects using ↓ ↑, and press enter to delete artifacts for the selected project.
 
-Press *ESC* to exit.
+Press *q* or *ESC* to exit.
 
 **Warning for Node projects:** Some Node applications need their node_modules directory to work and deleting them may break them.
 
