@@ -5,11 +5,12 @@ use console::{Term, Key, Style};
 use crate::project::{Project, delete};
 
 pub fn project_menu(projects: &Vec<Project>) {
-    const MIN_PADDING: usize = 10;
+    const MIN_PATH_PADDING: usize = 10;
     const PROJECT_TYPE_PADDING: usize = 8;
     const LAST_MOD_PADDING: usize = 10;
+    const MIN_SIZE_PADDING: usize = 12;
     let mut max_path_len = 0;
-    let mut max_size_len = 0;
+    let mut max_size_len = MIN_SIZE_PADDING;
 
     for project in projects {
         let path_name = project.path.to_str().unwrap().to_string();
@@ -23,11 +24,11 @@ pub fn project_menu(projects: &Vec<Project>) {
     max_size_len += 2;
 
     let menu_title = format!("  {}{}{}{}\n  {}{}{}{}",
-        format!("{:<width$}", "Path", width=(max_path_len + MIN_PADDING)),
+        format!("{:<width$}", "Path", width=(max_path_len + MIN_PATH_PADDING)),
         format!("{:<width$}", "Type", width=PROJECT_TYPE_PADDING),
         format!("{:>width$}", "Last Mod.", width=LAST_MOD_PADDING),
-        format!("{:>width$}", "Size", width=max_size_len),
-        format!("{:<width$}", "----", width=(max_path_len + MIN_PADDING)),
+        format!("{:>width$}", "Disk Savings", width=max_size_len),
+        format!("{:<width$}", "----", width=(max_path_len + MIN_PATH_PADDING)),
         format!("{:<width$}", "----", width=PROJECT_TYPE_PADDING),
         format!("{:>width$}", "----", width=LAST_MOD_PADDING),
         format!("{:>width$}", "----", width=max_size_len), 
@@ -36,7 +37,7 @@ pub fn project_menu(projects: &Vec<Project>) {
     let mut menu_items: Vec<MenuItem> = vec![];
     for project in projects {
         let label = format!("{}{}{}{}",
-            format!("{:<width$}", project.path.display(), width=(max_path_len + MIN_PADDING)),
+            format!("{:<width$}", project.path.display(), width=(max_path_len + MIN_PATH_PADDING)),
             format!("{:<width$}", project.project_type.to_string(), width=PROJECT_TYPE_PADDING),
             format!("{:>width$}", project.last_modified, width=LAST_MOD_PADDING),
             format!("{:>width$}", project.rm_size_str, width=max_size_len));
@@ -110,10 +111,12 @@ impl Menu {
                    if self.selected_item < num_options - 1 { self.selected_item += 1 }
                 }
                 Key::Escape | Key::Char('q') => {
+                    stdout.clear_screen().unwrap();
                     stdout.show_cursor().unwrap();
                     break;
                 }
                 Key::Enter => {
+                    stdout.clear_screen().unwrap();
                     self.run_action(&self.items[self.selected_item].action);
                     stdout.show_cursor().unwrap();
                     break;
@@ -129,8 +132,10 @@ impl Menu {
         stdout.clear_screen().unwrap();
 
         if let Some(title) = &self.title {
-            let style = Style::new().bold();
-            stdout.write_line(&format!("{}", style.apply_to(title))).unwrap();
+            let controls_style = Style::new().dim();
+            stdout.write_line(&format!("{}", controls_style.apply_to("  ↓ ↑ to select project, enter to delete artifacts\n"))).unwrap();
+            let title_style = Style::new().bold();
+            stdout.write_line(&format!("{}", title_style.apply_to(title))).unwrap();
         }
 
         for (i, option) in self.items.iter().enumerate() {
