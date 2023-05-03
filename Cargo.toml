@@ -6,6 +6,10 @@ license = "MIT"
 authors = ["Bryn Deering"]
 description = "Command line tool for removing dependencies and build artifacts from unused projects."
 readme = "README.md"
+homepage = "https://github.com/Bdeering1/polykill"
+repository = "https://github.com/Bdeering1/polykill"
+keywords = ["cli"]
+categories = ["command-line-utilities"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
