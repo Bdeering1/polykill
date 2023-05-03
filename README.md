@@ -20,7 +20,7 @@ cargo install polykill
 polykill /my-projects-directory
 ```
 
-Polykill will recursively search for supported projects in the provided directory and output a list of all projects found.
+Polykill will recursively search for projects in the provided directory and output a list of all projects found. If no directory is provided, the current directory will be searched.
 
 Move between listed projects using ↓ ↑, and press enter to delete artifacts for the selected project.
 
