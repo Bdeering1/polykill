@@ -1,6 +1,6 @@
 # Polykill
 
-Command line tool for removing dependencies and build artifacts from unused local projects.
+Command line tool for removing dependencies and build artifacts from unused local projects. Inspired by [npkill](https://www.npmjs.com/package/npkill#usage).
 
 Supported project types:
 - Cargo
@@ -24,7 +24,7 @@ Polykill will recursively search for supported projects in the provided director
 
 Move between listed projects using ↓ ↑, and press enter to delete artifacts for the selected project.
 
-Press *q* or *ESC* to exit.
+Press *q* or *esc* to exit.
 
 **Warning for Node projects:** Some Node applications need their node_modules directory to work and deleting them may break them.
 
