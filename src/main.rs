@@ -11,7 +11,11 @@ mod search;
 pub struct PolykillArgs {
     #[clap(default_value_t = String::from("."))]
     /// The directory to search for projects
-    pub dir: String
+    pub dir: String,
+
+    /// Include projects not tracked by git
+    #[arg(short, long)]
+    pub no_git: bool
 }
 
 fn main() {
@@ -27,7 +31,13 @@ fn main() {
     }
     
     println!("Searching for projects...");
-    let projects = search::find_git_projects(path);
+    let projects =
+        if args.no_git {
+            search::find_projects(path)
+        } else {
+            search::find_git_projects(path)
+        };
+
     if projects.is_empty() {
         println!("No projects found.");
         return;
