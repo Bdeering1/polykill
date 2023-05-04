@@ -1,53 +1,53 @@
 use std::path::PathBuf;
-
 use console::{Term, Key, Style};
 
 use crate::project::{Project, delete};
 
+const MIN_PATH_PADDING: usize = 10;
+const PROJECT_TYPE_PADDING: usize = 8;
+const LAST_MOD_PADDING: usize = 10;
+const SIZE_PADDING: usize = 18;
+
 pub fn project_menu(projects: &Vec<Project>) {
-    const MIN_PATH_PADDING: usize = 10;
-    const PROJECT_TYPE_PADDING: usize = 8;
-    const LAST_MOD_PADDING: usize = 10;
-    const MIN_SIZE_PADDING: usize = 12;
     let mut max_path_len = 0;
-    let mut max_size_len = MIN_SIZE_PADDING;
 
     for project in projects {
         let path_name = project.path.to_str().unwrap().to_string();
         if path_name.len() > max_path_len {
             max_path_len = path_name.len();
         }
-        if project.rm_size_str.len() > max_size_len {
-            max_size_len = project.rm_size_str.len();
-        }
     }
-    max_size_len += 2;
 
     let menu_title = format!("  {}{}{}{}\n  {}{}{}{}",
         format!("{:<width$}", "Path", width=(max_path_len + MIN_PATH_PADDING)),
         format!("{:<width$}", "Type", width=PROJECT_TYPE_PADDING),
         format!("{:>width$}", "Last Mod.", width=LAST_MOD_PADDING),
-        format!("{:>width$}", "Disk Savings", width=max_size_len),
+        format!("{:>width$}", "Disk Savings", width=SIZE_PADDING),
         format!("{:<width$}", "----", width=(max_path_len + MIN_PATH_PADDING)),
         format!("{:<width$}", "----", width=PROJECT_TYPE_PADDING),
         format!("{:>width$}", "----", width=LAST_MOD_PADDING),
-        format!("{:>width$}", "----", width=max_size_len), 
+        format!("{:>width$}", "----", width=SIZE_PADDING), 
     );
 
     let mut menu_items: Vec<MenuItem> = vec![];
     for project in projects {
-        let label = format!("{}{}{}{}",
-            format!("{:<width$}", project.path.display(), width=(max_path_len + MIN_PATH_PADDING)),
-            format!("{:<width$}", project.project_type.to_string(), width=PROJECT_TYPE_PADDING),
-            format!("{:>width$}", project.last_modified, width=LAST_MOD_PADDING),
-            format!("{:>width$}", project.rm_size_str, width=max_size_len));
+        let label = create_label(project, max_path_len);
         let action = MenuAction::Delete(project.rm_dirs.to_owned());
         let menu_item = MenuItem::new(&label, action);
         menu_items.push(menu_item);
     }
+
     let mut menu = Menu::new(menu_items);
     menu.title(&menu_title);
     menu.show();
+}
+
+fn create_label(project: &Project, max_path_len: usize) -> String {
+    format!("{}{}{}{}",
+        format!("{:<width$}", project.path.display(), width=(max_path_len + MIN_PATH_PADDING)),
+        format!("{:<width$}", project.project_type.to_string(), width=PROJECT_TYPE_PADDING),
+        format!("{:>width$}", project.last_modified, width=LAST_MOD_PADDING),
+        format!("{:>width$}", project.rm_size_str, width=SIZE_PADDING))
 }
 
 
@@ -111,19 +111,17 @@ impl Menu {
                    if self.selected_item < num_options - 1 { self.selected_item += 1 }
                 }
                 Key::Escape | Key::Char('q') => {
-                    stdout.clear_screen().unwrap();
-                    stdout.show_cursor().unwrap();
+                    self.exit(stdout);
                     break;
                 }
                 Key::Enter => {
-                    stdout.clear_screen().unwrap();
+                    self.exit(stdout);
                     self.run_action(&self.items[self.selected_item].action);
-                    stdout.show_cursor().unwrap();
                     break;
                 }
                 _ => {}
             }
-
+            
             self.draw(stdout);
         }
     }
@@ -147,6 +145,12 @@ impl Menu {
             }
         }
 
+        stdout.flush().unwrap();
+    }
+
+    fn exit(&self, stdout: &Term) {
+        stdout.clear_screen().unwrap();
+        stdout.show_cursor().unwrap();
         stdout.flush().unwrap();
     }
 
