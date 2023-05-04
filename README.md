@@ -33,8 +33,9 @@ Press *q* or *esc* to exit.
 | Argument       | Description                         |
 | -------------- | ----------------------------------- |
 | -n, --no-git   | Include projects not tracked by git |
+| -v, --verbose  | Verbose output                      |
 | -h, --help     | Print help                          |
-| -v, --version  | Print version                       |
+| -V, --version  | Print version                       |
 
 ## Additional Information
 

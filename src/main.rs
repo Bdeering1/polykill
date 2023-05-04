@@ -13,9 +13,14 @@ pub struct PolykillArgs {
     /// The directory to search for projects
     pub dir: String,
 
+    /// Verbose output
+    #[arg(short, long)]
+    pub verbose: bool,
+
     /// Include projects not tracked by git
     #[arg(short, long)]
-    pub no_git: bool
+    pub no_git: bool,
+
 }
 
 fn main() {
@@ -42,5 +47,5 @@ fn main() {
         println!("No projects found.");
         return;
     }
-    project_menu(&projects);
+    project_menu(projects, args.verbose);
 }

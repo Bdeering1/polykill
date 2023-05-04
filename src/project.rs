@@ -42,6 +42,21 @@ impl Project {
         let rm_dirs = vec![path.join(PathBuf::from("bin")), path.join(PathBuf::from("obj"))];
         Project::new(path, ProjectType::Dotnet, rm_dirs)
     }
+
+    pub fn delete(&mut self) -> Option<String> {
+        let mut message = String::from("");
+        for dir in &self.rm_dirs {
+            match remove_dir_all(dir) {
+                Ok(_) => message = message + format!("Removed {:?}\n", dir).as_str(),
+                Err(e) => message = message + format!("Unable to remove {:?}: {}\n", dir, e).as_str()
+            }
+        }
+        self.rm_size = get_rm_size(&self.rm_dirs);
+        self.rm_size_str = ByteSize::b(self.rm_size as u64).to_string();
+        self.last_modified = get_time_since_last_mod(&self.path);
+
+        if message.len() == 0 { None } else { Some(message) }
+    }
 }
 
 #[derive(Debug)]
@@ -102,13 +117,4 @@ fn dir_size(path: &PathBuf) -> io::Result<u64> {
     }
 
     dir_size(read_dir(path)?)
-}
-
-pub fn delete(dirs: &Vec<PathBuf>) {
-    for dir in dirs {
-        match remove_dir_all(dir) {
-            Ok(_) => println!("Removed {:?}", dir),
-            Err(e) => println!("Unable to remove {:?}: {}", dir, e)
-        }
-    }
 }

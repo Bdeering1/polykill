@@ -1,17 +1,17 @@
-use std::path::PathBuf;
 use console::{Term, Key, Style};
 
-use crate::project::{Project, delete};
+use crate::project::Project;
 
 const MIN_PATH_PADDING: usize = 10;
 const PROJECT_TYPE_PADDING: usize = 8;
 const LAST_MOD_PADDING: usize = 10;
 const SIZE_PADDING: usize = 18;
+const MIN_CHARS: usize = MIN_PATH_PADDING + PROJECT_TYPE_PADDING + LAST_MOD_PADDING + SIZE_PADDING;
 
-pub fn project_menu(projects: &Vec<Project>) {
+pub fn project_menu(projects: Vec<Project>, verbose: bool) {
     let mut max_path_len = 0;
 
-    for project in projects {
+    for project in &projects {
         let path_name = project.path.to_str().unwrap().to_string();
         if path_name.len() > max_path_len {
             max_path_len = path_name.len();
@@ -26,18 +26,18 @@ pub fn project_menu(projects: &Vec<Project>) {
         format!("{:<width$}", "----", width=(max_path_len + MIN_PATH_PADDING)),
         format!("{:<width$}", "----", width=PROJECT_TYPE_PADDING),
         format!("{:>width$}", "----", width=LAST_MOD_PADDING),
-        format!("{:>width$}", "----", width=SIZE_PADDING), 
+        format!("{:>width$}", "----", width=SIZE_PADDING),
     );
 
     let mut menu_items: Vec<MenuItem> = vec![];
     for project in projects {
-        let label = create_label(project, max_path_len);
-        let action = MenuAction::Delete(project.rm_dirs.to_owned());
+        let label = create_label(&project, max_path_len);
+        let action = MenuAction::Delete(project);
         let menu_item = MenuItem::new(&label, action);
         menu_items.push(menu_item);
     }
 
-    let mut menu = Menu::new(menu_items);
+    let mut menu = Menu::new(menu_items, verbose);
     menu.title(&menu_title);
     menu.show();
 }
@@ -52,7 +52,7 @@ fn create_label(project: &Project, max_path_len: usize) -> String {
 
 
 pub enum MenuAction {
-    Delete(Vec<PathBuf>)
+    Delete(Project)
 }
 
 pub struct MenuItem {
@@ -72,15 +72,22 @@ impl MenuItem {
 pub struct Menu {
     title: Option<String>,
     items: Vec<MenuItem>,
-    selected_item: usize
+    selected_item: usize,
+    verbose: bool,
+    message: Option<String>,
+    max_path_len: usize
 }
 
 impl Menu {
-    pub fn new(items: Vec<MenuItem>) -> Self {
+    pub fn new(items: Vec<MenuItem>, verbose: bool) -> Self {
+        let max_path_len = items[0].label.len() - MIN_CHARS;
         Self {
             title: None,
             items,
-            selected_item: 0
+            selected_item: 0,
+            verbose,
+            message: None,
+            max_path_len,
         }
     }
 
@@ -115,9 +122,7 @@ impl Menu {
                     break;
                 }
                 Key::Enter => {
-                    self.exit(stdout);
-                    self.run_action(&self.items[self.selected_item].action);
-                    break;
+                    self.run_action(self.selected_item);
                 }
                 _ => {}
             }
@@ -144,6 +149,10 @@ impl Menu {
                 stdout.write_line(&format!("  {}", option.label)).unwrap();
             }
         }
+        if let Some(message) = &self.message {
+            let style = Style::new().red();
+            stdout.write_line(&format!("\n{}", style.apply_to(message))).unwrap();
+        }
 
         stdout.flush().unwrap();
     }
@@ -154,10 +163,13 @@ impl Menu {
         stdout.flush().unwrap();
     }
 
-    fn run_action(&self, action: &MenuAction) {
+    fn run_action(&mut self, action_idx: usize) {
+        let action = &mut self.items[action_idx].action;
         match action {
-            MenuAction::Delete(dirs) => {
-                delete(dirs);
+            MenuAction::Delete(project) => {
+                let message = project.delete();
+                if self.verbose { self.message = message; }
+                self.items[action_idx].label = create_label(&project, self.max_path_len);
             }
         }
     }
