@@ -22,7 +22,7 @@ polykill [OPTIONS] [DIR]
 
 Polykill will recursively search for projects in the provided directory and output a list of all projects found. If no directory is provided, the current directory will be searched.
 
-Move between listed projects using ↓ ↑, and press enter to delete artifacts for the selected project.
+Move between listed projects using ↓,↑,←,→ and press enter to delete artifacts for the selected project.
 
 Press *q* or *esc* to exit.
 
