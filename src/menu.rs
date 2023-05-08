@@ -38,6 +38,7 @@ pub fn project_menu(projects: Vec<Project>, verbose: bool) {
     }
 
     let mut menu = Menu::new(menu_items, verbose);
+    menu.set_page(0);
     menu.title(&menu_title);
     menu.show();
 }
@@ -73,6 +74,10 @@ pub struct Menu {
     title: Option<String>,
     items: Vec<MenuItem>,
     selected_item: usize,
+    selected_page: usize,
+    items_per_page: usize,
+    page_start: usize,
+    page_end: usize,
     verbose: bool,
     message: Option<String>,
     max_path_len: usize
@@ -80,11 +85,16 @@ pub struct Menu {
 
 impl Menu {
     pub fn new(items: Vec<MenuItem>, verbose: bool) -> Self {
+        const ITEMS_PER_PAGE: usize = 15;
         let max_path_len = items[0].label.len() - MIN_CHARS;
         Self {
             title: None,
             items,
             selected_item: 0,
+            selected_page: 0,
+            items_per_page: ITEMS_PER_PAGE,
+            page_start: 0,
+            page_end: 0,
             verbose,
             message: None,
             max_path_len,
@@ -112,10 +122,20 @@ impl Menu {
 
             match key {
                 Key::ArrowUp => {
-                    if self.selected_item != 0 { self.selected_item -= 1 }
+                    if self.selected_item != self.page_start { self.selected_item -= 1 }
                 }
                 Key::ArrowDown => {
-                   if self.selected_item < num_options - 1 { self.selected_item += 1 }
+                   if self.selected_item + 1 < self.page_end { self.selected_item += 1 }
+                }
+                Key::ArrowLeft => {
+                    if self.selected_page != 0 {
+                        self.set_page(self.selected_page - 1);
+                    }
+                }
+                Key::ArrowRight => {
+                    if self.selected_page < (num_options / self.items_per_page) {
+                        self.set_page(self.selected_page + 1);
+                    }
                 }
                 Key::Escape | Key::Char('q') => {
                     self.exit(stdout);
@@ -131,6 +151,17 @@ impl Menu {
         }
     }
 
+    fn set_page(&mut self, page: usize) {
+        self.selected_page = page;
+        self.page_start = self.selected_page * self.items_per_page;
+        self.selected_item = self.page_start;
+        if self.items.len() > self.page_start + self.items_per_page {
+            self.page_end = self.page_start + self.items_per_page
+        } else {
+            self.page_end = self.items.len()
+        }
+    }
+
     fn draw(&self, stdout: &Term) {
         stdout.clear_screen().unwrap();
 
@@ -141,14 +172,16 @@ impl Menu {
             stdout.write_line(&format!("{}", title_style.apply_to(title))).unwrap();
         }
 
-        for (i, option) in self.items.iter().enumerate() {
-            if i == self.selected_item {
+        for (i, option) in self.items[self.page_start..self.page_end].iter().enumerate() {
+            let selected_idx = self.page_start + i;
+            if selected_idx == self.selected_item {
                 let style = Style::new().bold();
                 stdout.write_line(&format!("> {}", style.apply_to(&option.label))).unwrap();
             } else {
                 stdout.write_line(&format!("  {}", option.label)).unwrap();
             }
         }
+
         if let Some(message) = &self.message {
             let style = Style::new().red();
             stdout.write_line(&format!("\n{}", style.apply_to(message))).unwrap();
