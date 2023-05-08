@@ -38,7 +38,6 @@ pub fn project_menu(projects: Vec<Project>, verbose: bool) {
     }
 
     let mut menu = Menu::new(menu_items, verbose);
-    menu.set_page(0);
     menu.title(&menu_title);
     menu.show();
 }
@@ -76,6 +75,7 @@ pub struct Menu {
     selected_item: usize,
     selected_page: usize,
     items_per_page: usize,
+    num_pages: usize,
     page_start: usize,
     page_end: usize,
     verbose: bool,
@@ -85,20 +85,29 @@ pub struct Menu {
 
 impl Menu {
     pub fn new(items: Vec<MenuItem>, verbose: bool) -> Self {
-        const ITEMS_PER_PAGE: usize = 15;
+        let items_per_page =
+        if verbose {
+            Term::stdout().size().0 as usize - 9
+        } else {
+            Term::stdout().size().0 as usize - 6
+        };
+        let num_pages = items.len() / items_per_page + 1;
         let max_path_len = items[0].label.len() - MIN_CHARS;
-        Self {
+        let mut menu = Self {
             title: None,
             items,
             selected_item: 0,
             selected_page: 0,
-            items_per_page: ITEMS_PER_PAGE,
+            items_per_page,
+            num_pages,
             page_start: 0,
             page_end: 0,
             verbose,
             message: None,
             max_path_len,
-        }
+        };
+        menu.set_page(0);
+        menu
     }
 
     pub fn title(&mut self, title: &str) {
@@ -116,7 +125,6 @@ impl Menu {
     }
 
     fn run_navigation(&mut self, stdout: &Term) {
-        let num_options = self.items.len();
         loop {
             let key = stdout.read_key().unwrap();
 
@@ -133,7 +141,7 @@ impl Menu {
                     }
                 }
                 Key::ArrowRight => {
-                    if self.selected_page < (num_options / self.items_per_page) {
+                    if self.selected_page < self.num_pages - 1 {
                         self.set_page(self.selected_page + 1);
                     }
                 }
@@ -181,6 +189,7 @@ impl Menu {
                 stdout.write_line(&format!("  {}", option.label)).unwrap();
             }
         }
+        stdout.write_line(&format!("Page {} of {}", self.selected_page + 1, self.num_pages)).unwrap();
 
         if let Some(message) = &self.message {
             let style = Style::new().red();

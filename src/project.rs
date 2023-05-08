@@ -54,7 +54,8 @@ impl Project {
         self.rm_size = get_rm_size(&self.rm_dirs);
         self.rm_size_str = ByteSize::b(self.rm_size as u64).to_string();
         self.last_modified = get_time_since_last_mod(&self.path);
-
+        
+        message.pop();
         if message.len() == 0 { None } else { Some(message) }
     }
 }
