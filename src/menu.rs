@@ -153,6 +153,7 @@ impl Menu {
                     break;
                 }
                 Key::Enter => {
+                    self.set_working(stdout);
                     self.run_action(self.selected_item);
                 }
                 _ => {}
@@ -171,6 +172,13 @@ impl Menu {
         } else {
             self.page_end = self.items.len()
         }
+    }
+
+    fn set_working(&mut self, stdout: &Term) {
+        let MenuAction::Delete(project) = &mut self.items[self.selected_item].action;
+        project.rm_size_str = String::from("working...");
+        self.items[self.selected_item].label = create_label(&project, self.max_path_len);
+        self.draw(stdout);
     }
 
     fn draw(&self, stdout: &Term) {
