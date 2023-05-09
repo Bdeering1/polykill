@@ -7,6 +7,7 @@ Supported project types:
 - Node
 - Mix
 - .NET Core
+- Gradle
 
 ## Installation
 
@@ -26,7 +27,7 @@ Move between listed projects using ↓,↑,←,→ and press enter to delete art
 
 Press *q* or *esc* to exit.
 
-**Warning for Node projects:** Some Node applications need their node_modules directory to work and deleting them may break them.
+**Warning for Node projects:** Some Node applications need their node_modules directory to work and deleting it may break them.
 
 ## Options
 
@@ -47,3 +48,4 @@ Directories removed for each project type:
 | Cargo     | target       |
 | Mix       | _build, deps |
 | .NET Core | bin, obj     |
+| Gradle    | build        |

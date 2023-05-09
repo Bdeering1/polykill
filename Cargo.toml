@@ -8,7 +8,7 @@ description = "Lightweight command line utility for removing dependencies and bu
 readme = "README.md"
 homepage = "https://github.com/Bdeering1/polykill#readme"
 repository = "https://github.com/Bdeering1/polykill"
-keywords = ["cli", "filesystem", "tools"]
+keywords = ["cli", "filesystem", "tools", "node", "cargo", "mix", "dotnet", "gradle"]
 categories = ["command-line-utilities", "development tools", "filesystem"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
