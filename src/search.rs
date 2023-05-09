@@ -48,6 +48,8 @@ pub fn find_git_projects(path: &Path) -> Vec<Project> {
                 projects.push(Project::mix(path));
             } else if is_dotnet(&path) {
                 projects.push(Project::dotnet(path));
+            } else if is_gradle(&path) {
+                projects.push(Project::gradle(path));
             } else {
                 projects.append(&mut find_projects(&path));
             }
@@ -73,6 +75,10 @@ pub fn is_mix(path: &Path) -> bool {
 
 pub fn is_dotnet(path: &Path) -> bool {
     contains_file_regex(path, ".csproj")
+}
+
+pub fn is_gradle(path: &Path) -> bool {
+    contains_file(path, "build.gradle") || contains_file(path, "build.gradle.kts")
 }
 
 pub fn is_repo(path: &Path) -> bool {
