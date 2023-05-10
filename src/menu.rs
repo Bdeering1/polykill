@@ -138,12 +138,12 @@ impl Menu {
                 Key::ArrowDown => {
                    if self.selected_item + 1 < self.page_end { self.selected_item += 1 }
                 }
-                Key::ArrowLeft => {
+                Key::ArrowLeft | Key::PageUp => {
                     if self.selected_page != 0 {
                         self.set_page(self.selected_page - 1);
                     }
                 }
-                Key::ArrowRight => {
+                Key::ArrowRight | Key::PageDown => {
                     if self.selected_page < self.num_pages - 1 {
                         self.set_page(self.selected_page + 1);
                     }
@@ -152,7 +152,7 @@ impl Menu {
                     self.exit(stdout);
                     break;
                 }
-                Key::Enter => {
+                Key::Enter | Key::Del => {
                     self.set_working(stdout);
                     self.run_action(self.selected_item);
                 }
@@ -186,7 +186,7 @@ impl Menu {
 
         if let Some(title) = &self.title {
             let controls_style = Style::new().dim();
-            stdout.write_line(&format!("{}", controls_style.apply_to("  ↓ ↑ to select project, enter to delete artifacts\n"))).unwrap();
+            stdout.write_line(&format!("{}", controls_style.apply_to("  ↓,↑,←,→ to select project, enter to delete artifacts\n"))).unwrap();
             let title_style = Style::new().bold();
             stdout.write_line(&format!("{}", title_style.apply_to(title))).unwrap();
         }
