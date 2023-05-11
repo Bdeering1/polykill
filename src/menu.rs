@@ -18,7 +18,8 @@ pub fn project_menu(projects: Vec<Project>, verbose: bool) {
         }
     }
 
-    let menu_title = format!("  {}{}{}{}\n  {}{}{}{}",
+    let menu_title = format!(
+        "  {}{}{}{}\n  {}{}{}{}",
         format!("{:<width$}", "Path", width=(max_path_len + MIN_PATH_PADDING)),
         format!("{:<width$}", "Type", width=PROJECT_TYPE_PADDING),
         format!("{:>width$}", "Last Mod.", width=LAST_MOD_PADDING),
@@ -35,7 +36,7 @@ pub fn project_menu(projects: Vec<Project>, verbose: bool) {
         let action = MenuAction::Delete(project);
         let menu_item = MenuItem::new(&label, action);
         menu_items.push(menu_item);
-    }
+    } 
 
     let mut menu = Menu::new(menu_items, verbose);
     menu.title(&menu_title);
@@ -43,11 +44,13 @@ pub fn project_menu(projects: Vec<Project>, verbose: bool) {
 }
 
 fn create_label(project: &Project, max_path_len: usize) -> String {
-    format!("{}{}{}{}",
+    format!(
+        "{}{}{}{}",
         format!("{:<width$}", project.path.display(), width=(max_path_len + MIN_PATH_PADDING)),
         format!("{:<width$}", project.project_type.to_string(), width=PROJECT_TYPE_PADDING),
         format!("{:>width$}", project.last_modified, width=LAST_MOD_PADDING),
-        format!("{:>width$}", project.rm_size_str, width=SIZE_PADDING))
+        format!("{:>width$}", project.rm_size_str, width=SIZE_PADDING)
+    )
 }
 
 

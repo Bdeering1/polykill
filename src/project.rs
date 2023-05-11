@@ -3,7 +3,6 @@ use std::fs::{ReadDir, metadata, read_dir, remove_dir_all};
 use std::path::PathBuf;
 use std::io;
 use std::time::{SystemTime, Duration};
-use bytesize::ByteSize;
 
 #[derive(Debug)]
 pub struct Project {
@@ -18,7 +17,7 @@ pub struct Project {
 impl Project {
     pub fn new(path: PathBuf, project_type: ProjectType, rm_dirs: Vec<PathBuf>) -> Project {
         let rm_size = get_rm_size(&rm_dirs);
-        let rm_size_str = ByteSize::b(rm_size as u64).to_string();
+        let rm_size_str = bytes_to_string(rm_size);
         let last_modified = get_time_since_last_mod(&path);
         Project { path, project_type, rm_dirs, rm_size, rm_size_str, last_modified }
     }
@@ -57,7 +56,7 @@ impl Project {
             }
         }
         self.rm_size = get_rm_size(&self.rm_dirs);
-        self.rm_size_str = ByteSize::b(self.rm_size as u64).to_string();
+        self.rm_size_str = bytes_to_string(self.rm_size);
         self.last_modified = get_time_since_last_mod(&self.path);
         
         message.pop();
@@ -124,4 +123,26 @@ fn dir_size(path: &PathBuf) -> io::Result<u64> {
     }
 
     dir_size(read_dir(path)?)
+}
+
+fn bytes_to_string(bytes: u64) -> String {
+    const KB: u64 = 1000;
+    const BASE: f64 = 6.931471806;
+    const PREFIXES: &[u8] = "KMGT".as_bytes();
+    
+    if bytes < KB {
+        format!("{}  B", bytes)
+    } else {
+        let size = bytes as f64;
+        let exponent = match (size.ln() / BASE) as usize {
+            e if e == 0 => 1,
+            e => e,
+        };
+        
+        format!(
+            "{:.1} {}B",
+            (size / KB.pow(exponent as u32) as f64),
+            PREFIXES[exponent - 1] as char
+        )
+    }
 }
