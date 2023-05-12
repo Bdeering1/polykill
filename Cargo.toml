@@ -1,6 +1,6 @@
 [package]
 name = "polykill"
-version = "0.3.3"
+version = "0.4.0"
 edition = "2021"
 license = "MIT"
 authors = ["Bryn Deering"]
@@ -8,7 +8,7 @@ description = "Lightweight command line utility for removing dependencies and bu
 readme = "README.md"
 homepage = "https://github.com/Bdeering1/polykill#readme"
 repository = "https://github.com/Bdeering1/polykill"
-keywords = ["cli", "filesystem", "tools", "node", "cargo", "mix", "dotnet", "gradle"]
+keywords = ["cli", "filesystem", "tools", "node", "cargo"]
 categories = ["command-line-utilities", "development tools", "filesystem"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
