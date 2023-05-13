@@ -9,14 +9,14 @@ const SIZE_PADDING: usize = 18;
 const MIN_CHARS: usize = MIN_PATH_PADDING + PROJECT_TYPE_PADDING + LAST_MOD_PADDING + SIZE_PADDING;
 
 pub fn project_menu(projects: Vec<Project>, verbose: bool) {
-    let mut max_path_len = 0;
-
-    for project in &projects {
-        let path_name = project.path.to_str().unwrap().to_string();
-        if path_name.len() > max_path_len {
-            max_path_len = path_name.len();
+    let max_path_len = (&projects).into_iter().fold(0, |acc, project| {
+        let path_len = project.path.to_str().unwrap().to_string().len();
+        if path_len > acc {
+            path_len
+        } else {
+            acc
         }
-    }
+    });
 
     let menu_title = format!(
         "  {}{}{}{}\n  {}{}{}{}",
@@ -141,12 +141,12 @@ impl Menu {
                 Key::ArrowDown => {
                    if self.selected_item + 1 < self.page_end { self.selected_item += 1 }
                 }
-                Key::ArrowLeft | Key::PageUp => {
+                Key::ArrowLeft => {
                     if self.selected_page != 0 {
                         self.set_page(self.selected_page - 1);
                     }
                 }
-                Key::ArrowRight | Key::PageDown => {
+                Key::ArrowRight => {
                     if self.selected_page < self.num_pages - 1 {
                         self.set_page(self.selected_page + 1);
                     }
