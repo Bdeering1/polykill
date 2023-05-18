@@ -2,7 +2,9 @@ use std::path::{Path, PathBuf};
 
 use crate::project::Project;
 
-pub fn find_projects(path: &Path) -> Vec<Project> {
+pub fn find_projects(path: &Path, max_depth: u32) -> Vec<Project> {
+    if max_depth == 0 { return Vec::new(); }
+
     let mut projects = Vec::new();
     let entries = path.read_dir();
     if entries.is_err() { return projects; }
@@ -13,7 +15,7 @@ pub fn find_projects(path: &Path) -> Vec<Project> {
         let path = entry.unwrap().path();
         if !path.is_dir() { continue; }
 
-        check_for_project(&mut projects, path);
+        check_for_project(&mut projects, path, max_depth - 1);
     }
     projects
 }
@@ -30,7 +32,7 @@ pub fn find_git_projects(path: &Path) -> Vec<Project> {
         if !path.is_dir() { continue; }
 
         if is_repo(&path) {
-            check_for_project(&mut projects, path);
+            check_for_project(&mut projects, path, 1);
         } else {
             projects.append(&mut find_git_projects(&path));
         }
@@ -38,7 +40,7 @@ pub fn find_git_projects(path: &Path) -> Vec<Project> {
     projects
 }
 
-fn check_for_project(projects: &mut Vec<Project>, path: PathBuf) {
+fn check_for_project(projects: &mut Vec<Project>, path: PathBuf, max_depth: u32) {
     if is_node(&path) {
         projects.push(Project::node(path));
     } else if is_cargo(&path) {
@@ -52,7 +54,7 @@ fn check_for_project(projects: &mut Vec<Project>, path: PathBuf) {
     } else if let Some(rm_dir) = is_misc_project(&path) {
         projects.push(Project::misc(path.to_owned(), vec![path.join(rm_dir)]));
     } else {
-        projects.append(&mut find_projects(&path));
+        projects.append(&mut find_projects(&path, max_depth));
     }
 }
 
@@ -72,13 +74,14 @@ fn is_gradle(path: &Path) -> bool {
     contains_entry(path, "build.gradle") || contains_entry(path, "build.gradle.kts")
 }
 fn is_misc_project(path: &Path) -> Option<PathBuf> {
-    if contains_entry(path, "bin") {
-        Some(PathBuf::from("bin"))
-    } else if contains_entry(path, "build") {
-        Some(PathBuf::from("build"))
-    } else if contains_entry(path, "dist") {
-        Some(PathBuf::from("dist"))
-    } else { None }
+    const MISC_DIRS: [&str; 3] = ["bin", "build", "dist"];
+
+    for dir in MISC_DIRS {
+        if contains_entry(path, dir) {
+            return Some(PathBuf::from(dir));
+        }
+    }
+    None
 }
 fn is_repo(path: &Path) -> bool {
     contains_entry(path, ".git")

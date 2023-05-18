@@ -24,6 +24,8 @@ pub struct PolykillArgs {
 }
 
 fn main() {
+    const MAX_SEARCH_DEPTH: u32 = 10; // only applies if --no-git flag is specified
+
     let args = PolykillArgs::parse();
     let path = Path::new(args.dir.as_str());
     if !path.exists() {
@@ -38,7 +40,7 @@ fn main() {
     println!("Searching for projects...");
     let projects =
         if args.no_git {
-            search::find_projects(path)
+            search::find_projects(path, MAX_SEARCH_DEPTH)
         } else {
             search::find_git_projects(path)
         };
