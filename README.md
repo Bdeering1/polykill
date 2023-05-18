@@ -8,6 +8,7 @@ Supported project types:
 - Mix
 - .NET Core
 - Gradle
+- Misc (see "Addional Information")
 
 ## Installation
 
@@ -42,13 +43,13 @@ Press *q* or *esc* to exit.
 
 ## Additional Information
 
-Directories removed for each project type:
+How projects are identified and which directories are used for dependencies and build artifacts:
 
-| Type      | Directories      |
-| --------- | ---------------- |
-| Node      | node_modules     |
-| Cargo     | target           |
-| Mix       | _build, deps     |
-| .NET Core | bin, obj         |
-| Gradle    | build            |
-| Misc      | bin, build, dist |
+| Type      | Identifier(s)      | Directories      |
+| --------- | ------------------ | ---------------- |
+| Node      | package.json       | node_modules     |
+| Cargo     | cargo.toml         | target           |
+| Mix       | mix.exs            | _build, deps     |
+| .NET Core | .csproj            | bin, obj         |
+| Gradle    | build.gradle(.kts) | build            |
+| Misc      | bin, build, dist   | bin, build, dist |
