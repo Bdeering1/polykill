@@ -38,14 +38,17 @@ Press *q* or *esc* to exit.
 | -h, --help     | Print help                          |
 | -V, --version  | Print version                       |
 
+*--no-git option will slow down project search
+
 ## Additional Information
 
 Directories removed for each project type:
 
-| Type      | Directories  |
-| --------- | ------------ |
-| Node      | node_modules |
-| Cargo     | target       |
-| Mix       | _build, deps |
-| .NET Core | bin, obj     |
-| Gradle    | build        |
+| Type      | Directories      |
+| --------- | ---------------- |
+| Node      | node_modules     |
+| Cargo     | target           |
+| Mix       | _build, deps     |
+| .NET Core | bin, obj         |
+| Gradle    | build            |
+| Misc      | bin, build, dist |
