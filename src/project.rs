@@ -47,8 +47,7 @@ impl Project {
         Project::new(path, ProjectType::Gradle, rm_dirs)
     }
 
-    pub fn misc(path: PathBuf) -> Project {
-        let rm_dirs = vec![path.join(PathBuf::from("bin")), path.join(PathBuf::from("build")), path.join(PathBuf::from("dist"))];
+    pub fn misc(path: PathBuf, rm_dirs: Vec<PathBuf>) -> Project {
         Project::new(path, ProjectType::Misc, rm_dirs)
     }
 
