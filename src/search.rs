@@ -49,32 +49,37 @@ fn check_for_project(projects: &mut Vec<Project>, path: PathBuf) {
         projects.push(Project::dotnet(path));
     } else if is_gradle(&path) {
         projects.push(Project::gradle(path));
+    } else if is_misc_project(&path) {
+        projects.push(Project::misc(path));
     } else {
         projects.append(&mut find_projects(&path));
     }
 }
 
 fn is_node(path: &Path) -> bool {
-    contains_file(path, "package.json") 
+    contains_entry(path, "package.json") 
 }
 fn is_cargo(path: &Path) -> bool {
-    contains_file(path, "Cargo.toml")
+    contains_entry(path, "Cargo.toml")
 }
 fn is_mix(path: &Path) -> bool {
-    contains_file(path, "mix.exs")
+    contains_entry(path, "mix.exs")
 }
 fn is_dotnet(path: &Path) -> bool {
     contains_file_regex(path, ".csproj")
 }
 fn is_gradle(path: &Path) -> bool {
-    contains_file(path, "build.gradle") || contains_file(path, "build.gradle.kts")
+    contains_entry(path, "build.gradle") || contains_entry(path, "build.gradle.kts")
+}
+fn is_misc_project(path: &Path) -> bool {
+    contains_entry(path, "bin") || contains_entry(path, "build") || contains_entry(path, "dist")
 }
 fn is_repo(path: &Path) -> bool {
-    contains_file(path, ".git")
+    contains_entry(path, ".git")
 }
 
-fn contains_file(path: &Path, file: &str) -> bool {
-    let res = path.join(file).try_exists();
+fn contains_entry(path: &Path, entry: &str) -> bool {
+    let res = path.join(entry).try_exists();
     if res.is_err() { false } else { res.unwrap() }
 }
 

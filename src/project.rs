@@ -47,6 +47,11 @@ impl Project {
         Project::new(path, ProjectType::Gradle, rm_dirs)
     }
 
+    pub fn misc(path: PathBuf) -> Project {
+        let rm_dirs = vec![path.join(PathBuf::from("bin")), path.join(PathBuf::from("build")), path.join(PathBuf::from("dist"))];
+        Project::new(path, ProjectType::Misc, rm_dirs)
+    }
+
     pub fn delete(&mut self) -> Option<String> {
         let mut message = String::from("");
         for dir in &self.rm_dirs {
@@ -71,6 +76,7 @@ pub enum ProjectType {
     Mix,
     Dotnet,
     Gradle,
+    Misc
 }
 
 impl Display for ProjectType {
