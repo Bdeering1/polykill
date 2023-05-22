@@ -1,9 +1,9 @@
 use console::{Term, Key, Style};
 
-use crate::project::Project;
+use crate::project::{Project, ProjectType};
 
 const MIN_PATH_PADDING: usize = 10;
-const PROJECT_TYPE_PADDING: usize = 8;
+const PROJECT_TYPE_PADDING: usize = 11;
 const LAST_MOD_PADDING: usize = 10;
 const SIZE_PADDING: usize = 18;
 const MIN_CHARS: usize = MIN_PATH_PADDING + PROJECT_TYPE_PADDING + LAST_MOD_PADDING + SIZE_PADDING;
@@ -44,10 +44,15 @@ pub fn project_menu(projects: Vec<Project>, verbose: bool) {
 }
 
 fn create_label(project: &Project, max_path_len: usize) -> String {
+    let project_type = if let ProjectType::Misc = project.project_type {
+        format!("Misc ({})", project.rm_dirs[0].file_name().unwrap().to_str().unwrap())
+    } else {
+        project.project_type.to_string()
+    };
     format!(
         "{}{}{}{}",
         format!("{:<width$}", project.path.display(), width=(max_path_len + MIN_PATH_PADDING)),
-        format!("{:<width$}", project.project_type.to_string(), width=PROJECT_TYPE_PADDING),
+        format!("{:<width$}", project_type, width=PROJECT_TYPE_PADDING),
         format!("{:>width$}", project.last_modified, width=LAST_MOD_PADDING),
         format!("{:>width$}", project.rm_size_str, width=SIZE_PADDING)
     )
@@ -83,7 +88,7 @@ pub struct Menu {
     page_end: usize,
     verbose: bool,
     message: Option<String>,
-    max_path_len: usize
+    max_path_len: usize,
 }
 
 impl Menu {
