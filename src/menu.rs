@@ -3,9 +3,9 @@ use console::{Term, Key, Style};
 use crate::project::{Project, ProjectType};
 
 const MIN_PATH_PADDING: usize = 10;
-const PROJECT_TYPE_PADDING: usize = 11;
+const PROJECT_TYPE_PADDING: usize = 12;
 const LAST_MOD_PADDING: usize = 10;
-const SIZE_PADDING: usize = 18;
+const SIZE_PADDING: usize = 16;
 const MIN_CHARS: usize = MIN_PATH_PADDING + PROJECT_TYPE_PADDING + LAST_MOD_PADDING + SIZE_PADDING;
 
 pub fn project_menu(projects: Vec<Project>, verbose: bool) {
