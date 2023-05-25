@@ -94,11 +94,11 @@ pub struct Menu {
 impl Menu {
     pub fn new(items: Vec<MenuItem>, verbose: bool) -> Self {
         let mut items_per_page: i32 =
-        if verbose {
-            Term::stdout().size().0 as i32 - 9
-        } else {
-            Term::stdout().size().0 as i32 - 6
-        };
+            if verbose {
+                Term::stdout().size().0 as i32 - 9
+            } else {
+                Term::stdout().size().0 as i32 - 6
+            };
         if items_per_page < 1 { items_per_page = 1 }
         let items_per_page = items_per_page as usize;
         let num_pages = ( (items.len() - 1)  / items_per_page ) + 1;

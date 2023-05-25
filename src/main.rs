@@ -1,5 +1,6 @@
 use std::path::Path;
 use clap::Parser;
+use console::Term;
 use menu::project_menu;
 
 mod menu;
@@ -21,6 +22,10 @@ pub struct PolykillArgs {
     #[arg(short, long)]
     pub no_git: bool,
 
+    /// Hide projects with zero possible disk savings
+    #[arg(long)]
+    pub hide_empty: bool,
+
 }
 
 fn main() {
@@ -36,11 +41,25 @@ fn main() {
         println!("'{}' is a file, please specify a directory.", path.display());
         return;
     }
+
+    let term_height = Term::stdout().size().0 as usize;
+    println!("{}", "\n".repeat(term_height / 2 - 4));
+    println!("
+    ██████   ██████  ██   ██    ██ ██   ██ ██ ██      ██  
+    ██   ██ ██    ██ ██    ██  ██  ██  ██  ██ ██      ██ 
+    ██████  ██    ██ ██     ████   █████   ██ ██      ██        
+    ██      ██    ██ ██      ██    ██  ██  ██ ██      ██   
+    ██       ██████  ███████ ██    ██   ██ ██ ███████ ███████ 
+    v{}
     
-    println!("Searching for projects...");
-    let projects =
+    searching for projects...
+    ", env!("CARGO_PKG_VERSION")
+    );
+    println!("{}", "\n".repeat(term_height / 2 - 4));
+
+    let mut projects =
         if args.no_git {
-            search::find_projects(path, MAX_SEARCH_DEPTH)
+            search::find_projects(path,MAX_SEARCH_DEPTH)
         } else {
             search::find_git_projects(path)
         };
@@ -49,5 +68,9 @@ fn main() {
         println!("No projects found.");
         return;
     }
+    if args.hide_empty {
+        projects.retain(|p| p.rm_size > 0);
+    }
+
     project_menu(projects, args.verbose);
 }
