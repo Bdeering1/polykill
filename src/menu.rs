@@ -6,16 +6,11 @@ const MIN_PATH_PADDING: usize = 10;
 const PROJECT_TYPE_PADDING: usize = 12;
 const LAST_MOD_PADDING: usize = 10;
 const SIZE_PADDING: usize = 16;
-const MIN_CHARS: usize = MIN_PATH_PADDING + PROJECT_TYPE_PADDING + LAST_MOD_PADDING + SIZE_PADDING;
 
 pub fn project_menu(projects: Vec<Project>, verbose: bool) {
-    let max_path_len = (&projects).into_iter().fold(0, |acc, project| {
+    let max_path_len = (&projects).into_iter().fold(0, |max, project| {
         let path_len = project.path.to_str().unwrap().to_string().len();
-        if path_len > acc {
-            path_len
-        } else {
-            acc
-        }
+        if path_len > max { path_len } else { max }
     });
 
     let menu_title = format!(
@@ -38,7 +33,7 @@ pub fn project_menu(projects: Vec<Project>, verbose: bool) {
         menu_items.push(menu_item);
     } 
 
-    let mut menu = Menu::new(menu_items, verbose);
+    let mut menu = Menu::new(menu_items, max_path_len, verbose);
     menu.title(&menu_title);
     menu.show();
 }
@@ -92,7 +87,7 @@ pub struct Menu {
 }
 
 impl Menu {
-    pub fn new(items: Vec<MenuItem>, verbose: bool) -> Self {
+    pub fn new(items: Vec<MenuItem>, max_path_len: usize, verbose: bool) -> Self {
         let mut items_per_page: i32 =
             if verbose {
                 Term::stdout().size().0 as i32 - 9
@@ -102,7 +97,6 @@ impl Menu {
         if items_per_page < 1 { items_per_page = 1 }
         let items_per_page = items_per_page as usize;
         let num_pages = ( (items.len() - 1)  / items_per_page ) + 1;
-        let max_path_len = items[0].label.len() - MIN_CHARS;
 
         let mut menu = Self {
             title: None,
