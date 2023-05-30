@@ -43,8 +43,10 @@ fn main() {
     }
 
     let term_height = Term::stdout().size().0 as usize;
-    println!("{}", "\n".repeat(term_height / 2 - 4));
+    let top_pad = format!("{}", "\n".repeat(term_height / 2 - 3));
+    let bottom_pad = format!("{}", "\n".repeat(term_height / 2 - 5));
     println!("
+    {}
     ██████   ██████  ██   ██    ██ ██   ██ ██ ██      ██  
     ██   ██ ██    ██ ██    ██  ██  ██  ██  ██ ██      ██ 
     ██████  ██    ██ ██     ████   █████   ██ ██      ██        
@@ -53,9 +55,9 @@ fn main() {
     v{}
     
     searching for projects...
-    ", env!("CARGO_PKG_VERSION")
+    {}
+    ", top_pad, env!("CARGO_PKG_VERSION"), bottom_pad
     );
-    println!("{}", "\n".repeat(term_height / 2 - 4));
 
     let mut projects =
         if args.no_git {
@@ -64,12 +66,12 @@ fn main() {
             search::find_git_projects(path)
         };
 
+    if args.hide_empty {
+        projects.retain(|p| p.rm_size > 0);
+    }
     if projects.is_empty() {
         println!("No projects found.");
         return;
-    }
-    if args.hide_empty {
-        projects.retain(|p| p.rm_size > 0);
     }
 
     project_menu(projects, args.verbose);
