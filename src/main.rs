@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{path::Path};
 use clap::Parser;
 use console::Term;
 use menu::project_menu;
@@ -26,6 +26,9 @@ pub struct PolykillArgs {
     #[arg(long)]
     pub hide_empty: bool,
 
+    /// Don't bring up project menu (for testing purposes only)
+    #[arg(long)]
+    pub dry_run: bool,
 }
 
 fn main() {
@@ -34,7 +37,7 @@ fn main() {
     let args = PolykillArgs::parse();
     let path = Path::new(args.dir.as_str());
     if !path.exists() {
-        println!("Directory '{}' does not exist.", path.display());
+        println!("Path '{}' does not exist.", path.display());
         return;
     }
     if path.is_file() {
@@ -42,22 +45,24 @@ fn main() {
         return;
     }
 
-    let term_height = Term::stdout().size().0 as usize;
-    let top_pad = format!("{}", "\n".repeat(term_height / 2 - 3));
-    let bottom_pad = format!("{}", "\n".repeat(term_height / 2 - 5));
-    println!("
-    {}
-    ██████   ██████  ██   ██    ██ ██   ██ ██ ██      ██  
-    ██   ██ ██    ██ ██    ██  ██  ██  ██  ██ ██      ██ 
-    ██████  ██    ██ ██     ████   █████   ██ ██      ██        
-    ██      ██    ██ ██      ██    ██  ██  ██ ██      ██   
-    ██       ██████  ███████ ██    ██   ██ ██ ███████ ███████ 
-    v{}
-    
-    searching for projects...
-    {}
-    ", top_pad, env!("CARGO_PKG_VERSION"), bottom_pad
-    );
+    if !args.dry_run {
+        let term_height = Term::stdout().size().0 as usize;
+        let top_pad = format!("{}", "\n".repeat(term_height / 2 - 3));
+        let bottom_pad = format!("{}", "\n".repeat(term_height / 2 - 5));
+        println!("
+        {}
+        ██████   ██████  ██   ██    ██ ██   ██ ██ ██      ██  
+        ██   ██ ██    ██ ██    ██  ██  ██  ██  ██ ██      ██ 
+        ██████  ██    ██ ██     ████   █████   ██ ██      ██        
+        ██      ██    ██ ██      ██    ██  ██  ██ ██      ██   
+        ██       ██████  ███████ ██    ██   ██ ██ ███████ ███████ 
+        v{}
+        
+        searching for projects...
+        {}
+        ", top_pad, env!("CARGO_PKG_VERSION"), bottom_pad
+        );
+    }
 
     let mut projects =
         if args.no_git {
@@ -74,5 +79,7 @@ fn main() {
         return;
     }
 
-    project_menu(projects, args.verbose);
+    if !args.dry_run {
+        project_menu(projects, args.verbose);
+    }
 }
