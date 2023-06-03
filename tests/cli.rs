@@ -1,7 +1,7 @@
 use std::{process::{Command, Stdio}, io::Write};
 
 use assert_cmd::prelude::{CommandCargoExt, OutputAssertExt};
-use predicates::prelude::predicate;
+use predicates::prelude::predicate::str;
 
 #[test]
 fn path_does_not_exist() -> Result<(), Box<dyn std::error::Error>> {
@@ -10,7 +10,7 @@ fn path_does_not_exist() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg("path/does/not/exist");
     cmd.assert()
         .success()
-        .stdout(predicate::str::contains("does not exist"));
+        .stdout(str::contains("does not exist"));
 
     Ok(())
 }
@@ -22,7 +22,7 @@ fn is_a_file() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg("Cargo.toml");
     cmd.assert()
         .success()
-        .stdout(predicate::str::contains("is a file"));
+        .stdout(str::contains("is a file"));
 
     Ok(())
 }
@@ -34,7 +34,7 @@ fn no_projects_found() -> Result<(), Box<dyn std::error::Error>> {
     cmd.args(["--dry-run", "tests/test_dirs/empty"]);
     cmd.assert()
         .success()
-        .stdout(predicate::str::contains("No projects found."));
+        .stdout(str::contains("No projects found."));
 
     Ok(())
 }
@@ -48,7 +48,9 @@ fn project_found() -> Result<(), Box<dyn std::error::Error>> {
     proc.stdin.as_mut().unwrap().write_fmt(format_args!("q"))?;
     proc.wait()?;
 
-    cmd.assert().success();
+    cmd.assert()
+        .success()
+        .stdout(str::is_empty());
 
     Ok(())
 }
