@@ -51,6 +51,8 @@ fn check_for_project(projects: &mut Vec<Project>, path: PathBuf, max_depth: u32)
         projects.push(Project::dotnet(path));
     } else if is_gradle(&path) {
         projects.push(Project::gradle(path));
+    } else if is_composer(&path) {
+        projects.push(Project::composer(path));
     } else if let Some(rm_dir) = is_misc_project(&path) {
         projects.push(Project::misc(path.to_owned(), vec![path.join(rm_dir)]));
     } else {
@@ -72,6 +74,9 @@ fn is_dotnet(path: &Path) -> bool {
 }
 fn is_gradle(path: &Path) -> bool {
     contains_entry(path, "build.gradle") || contains_entry(path, "build.gradle.kts")
+}
+fn is_composer(path: &Path) -> bool {
+    contains_entry(path, "composer.json")
 }
 fn is_misc_project(path: &Path) -> Option<PathBuf> {
     const MISC_DIRS: [&str; 3] = ["bin", "build", "dist"];

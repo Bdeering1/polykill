@@ -47,6 +47,11 @@ impl Project {
         Project::new(path, ProjectType::Gradle, rm_dirs)
     }
 
+    pub fn composer(path: PathBuf) -> Project {
+        let rm_dirs = vec![path.join(PathBuf::from("vendor"))];
+        Project::new(path, ProjectType::Composer, rm_dirs)
+    }
+
     pub fn misc(path: PathBuf, rm_dirs: Vec<PathBuf>) -> Project {
         Project::new(path, ProjectType::Misc, rm_dirs)
     }
@@ -75,6 +80,7 @@ pub enum ProjectType {
     Mix,
     Dotnet,
     Gradle,
+    Composer,
     Misc
 }
 
