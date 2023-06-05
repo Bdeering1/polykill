@@ -52,4 +52,5 @@ How projects are identified and which directories are used for dependencies and 
 | Mix       | mix.exs            | _build, deps     |
 | .NET Core | .csproj            | bin, obj         |
 | Gradle    | build.gradle(.kts) | build            |
+| Composer  | composer.json      | vendor           |
 | Misc      | bin, build, dist   | bin, build, dist |
