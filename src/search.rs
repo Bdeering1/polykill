@@ -32,7 +32,7 @@ pub fn find_git_projects(path: &Path) -> Vec<Project> {
         if !path.is_dir() { continue; }
 
         if is_repo(&path) {
-            check_for_project(&mut projects, path, 1);
+            check_for_project(&mut projects, path, 2);
         } else {
             projects.append(&mut find_git_projects(&path));
         }
