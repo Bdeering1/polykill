@@ -33,13 +33,13 @@ Press *q* or *esc* to exit.
 
 ## Options
 
-| Argument       | Description                                   |
-| -------------- | --------------------------------------------- |
-| -v, --verbose  | Verbose output                                |
-| -n, --no-git   | Include projects not tracked by git           |
-| --hide-empty   | Hide projects with zero possible disk savings |
-| -h, --help     | Print help                                    |
-| -V, --version  | Print version                                 |
+| Argument         | Description                                   |
+| ---------------- | --------------------------------------------- |
+| -v, --verbose    | Verbose output                                |
+| -n, --no-git     | Include projects not tracked by git           |
+| -s, --skip-empty | Hide projects with zero possible disk savings |
+| -h, --help       | Print help                                    |
+| -V, --version    | Print version                                 |
 
 *--no-git option will slow down project search
 
