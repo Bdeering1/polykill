@@ -1,7 +1,6 @@
-use std::{path::Path};
+use std::path::Path;
 use clap::Parser;
 use console::Term;
-use menu::project_menu;
 
 mod menu;
 mod project;
@@ -23,8 +22,8 @@ pub struct PolykillArgs {
     pub no_git: bool,
 
     /// Hide projects with zero possible disk savings
-    #[arg(long)]
-    pub hide_empty: bool,
+    #[arg(short, long)]
+    pub skip_empty: bool,
 
     /// Don't bring up project menu (for testing purposes only)
     #[arg(long)]
@@ -47,8 +46,8 @@ fn main() {
 
     if !args.dry_run {
         let term_height = Term::stdout().size().0 as usize;
-        let top_pad = format!("{}", "\n".repeat(term_height / 2 - 3));
-        let bottom_pad = format!("{}", "\n".repeat(term_height / 2 - 5));
+        let top_pad = "\n".repeat(term_height / 2 - 3);
+        let bottom_pad = "\n".repeat(term_height / 2 - 5);
         println!("
         {}
         ██████   ██████  ██   ██    ██ ██   ██ ██ ██      ██  
@@ -71,7 +70,7 @@ fn main() {
             search::find_git_projects(path)
         };
 
-    if args.hide_empty {
+    if args.skip_empty {
         projects.retain(|p| p.rm_size > 0);
     }
     if projects.is_empty() {
@@ -80,6 +79,6 @@ fn main() {
     }
 
     if !args.dry_run {
-        project_menu(projects, args.verbose);
+        menu::project_menu(projects, args.verbose);
     }
 }

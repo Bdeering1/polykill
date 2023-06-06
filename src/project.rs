@@ -60,8 +60,8 @@ impl Project {
         let mut message = String::from("");
         for dir in &self.rm_dirs {
             match remove_dir_all(dir) {
-                Ok(_) => message = message + format!("Removed {:?}\n", dir).as_str(),
-                Err(e) => message = message + format!("Unable to remove {:?}: {}\n", dir, e).as_str()
+                Ok(_) => message += format!("Removed {:?}\n", dir).as_str(),
+                Err(e) => message += format!("Unable to remove {:?}: {}\n", dir, e).as_str()
             }
         }
         self.rm_size = get_rm_size(&self.rm_dirs);
@@ -69,7 +69,7 @@ impl Project {
         self.last_modified = get_time_since_last_mod(&self.path);
         
         message.pop();
-        if message.len() == 0 { None } else { Some(message) }
+        if message.is_empty() { None } else { Some(message) }
     }
 }
 

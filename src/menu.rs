@@ -8,21 +8,21 @@ const LAST_MOD_PADDING: usize = 10;
 const SIZE_PADDING: usize = 16;
 
 pub fn project_menu(projects: Vec<Project>, verbose: bool) {
-    let max_path_len = (&projects).into_iter().fold(0, |max, project| {
+    let max_path_len = (&projects).iter().fold(0, |max, project| {
         let path_len = project.path.to_str().unwrap().to_string().len();
         if path_len > max { path_len } else { max }
     });
 
     let menu_title = format!(
         "  {}{}{}{}\n  {}{}{}{}",
-        format!("{:<width$}", "Path", width=(max_path_len + MIN_PATH_PADDING)),
-        format!("{:<width$}", "Type", width=PROJECT_TYPE_PADDING),
-        format!("{:>width$}", "Last Mod.", width=LAST_MOD_PADDING),
-        format!("{:>width$}", "Disk Savings", width=SIZE_PADDING),
-        format!("{:<width$}", "----", width=(max_path_len + MIN_PATH_PADDING)),
-        format!("{:<width$}", "----", width=PROJECT_TYPE_PADDING),
-        format!("{:>width$}", "----", width=LAST_MOD_PADDING),
-        format!("{:>width$}", "----", width=SIZE_PADDING),
+        format_args!("{:<width$}", "Path", width=(max_path_len + MIN_PATH_PADDING)),
+        format_args!("{:<width$}", "Type", width=PROJECT_TYPE_PADDING),
+        format_args!("{:>width$}", "Last Mod.", width=LAST_MOD_PADDING),
+        format_args!("{:>width$}", "Disk Savings", width=SIZE_PADDING),
+        format_args!("{:<width$}", "----", width=(max_path_len + MIN_PATH_PADDING)),
+        format_args!("{:<width$}", "----", width=PROJECT_TYPE_PADDING),
+        format_args!("{:>width$}", "----", width=LAST_MOD_PADDING),
+        format_args!("{:>width$}", "----", width=SIZE_PADDING),
     );
 
     let mut menu_items: Vec<MenuItem> = vec![];
@@ -46,10 +46,10 @@ fn create_label(project: &Project, max_path_len: usize) -> String {
     };
     format!(
         "{}{}{}{}",
-        format!("{:<width$}", project.path.display(), width=(max_path_len + MIN_PATH_PADDING)),
-        format!("{:<width$}", project_type, width=PROJECT_TYPE_PADDING),
-        format!("{:>width$}", project.last_modified, width=LAST_MOD_PADDING),
-        format!("{:>width$}", project.rm_size_str, width=SIZE_PADDING)
+        format_args!("{:<width$}", project.path.display(), width=(max_path_len + MIN_PATH_PADDING)),
+        format_args!("{:<width$}", project_type, width=PROJECT_TYPE_PADDING),
+        format_args!("{:>width$}", project.last_modified, width=LAST_MOD_PADDING),
+        format_args!("{:>width$}", project.rm_size_str, width=SIZE_PADDING)
     )
 }
 
@@ -138,7 +138,7 @@ impl Menu {
                     if self.selected_item != self.page_start { self.selected_item -= 1 }
                 }
                 Key::ArrowDown => {
-                   if self.selected_item + 1 < self.page_end { self.selected_item += 1 }
+                    if self.selected_item + 1 < self.page_end { self.selected_item += 1 }
                 }
                 Key::ArrowLeft => {
                     if self.selected_page != 0 {
@@ -179,7 +179,7 @@ impl Menu {
     fn set_working(&mut self, stdout: &Term) {
         let MenuAction::Delete(project) = &mut self.items[self.selected_item].action;
         project.rm_size_str = String::from("working...");
-        self.items[self.selected_item].label = create_label(&project, self.max_path_len);
+        self.items[self.selected_item].label = create_label(project, self.max_path_len);
         self.draw(stdout);
     }
 
@@ -224,7 +224,7 @@ impl Menu {
             MenuAction::Delete(project) => {
                 let message = project.delete();
                 if self.verbose { self.message = message; }
-                self.items[action_idx].label = create_label(&project, self.max_path_len);
+                self.items[action_idx].label = create_label(project, self.max_path_len);
             }
         }
     }

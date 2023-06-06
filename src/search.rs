@@ -94,7 +94,7 @@ fn is_repo(path: &Path) -> bool {
 
 fn contains_entry(path: &Path, entry: &str) -> bool {
     let res = path.join(entry).try_exists();
-    if res.is_err() { false } else { res.unwrap() }
+    if let Ok(val) = res { val } else { false }
 }
 
 fn contains_file_regex(path: &Path, pattern: &str) -> bool {
