@@ -1,6 +1,6 @@
 [package]
 name = "polykill"
-version = "1.1.2"
+version = "1.2.0"
 edition = "2021"
 license = "MIT"
 authors = ["Bryn Deering"]
