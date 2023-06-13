@@ -134,18 +134,18 @@ impl Menu {
             let key = stdout.read_key().unwrap();
 
             match key {
-                Key::ArrowUp => {
+                Key::ArrowUp | Key::Char('k') => {
                     if self.selected_item != self.page_start { self.selected_item -= 1 }
                 }
-                Key::ArrowDown => {
+                Key::ArrowDown | Key::Char('j') => {
                     if self.selected_item + 1 < self.page_end { self.selected_item += 1 }
                 }
-                Key::ArrowLeft => {
+                Key::ArrowLeft | Key::Char('h') => {
                     if self.selected_page != 0 {
                         self.set_page(self.selected_page - 1);
                     }
                 }
-                Key::ArrowRight => {
+                Key::ArrowRight | Key::Char('l') => {
                     if self.selected_page < self.num_pages - 1 {
                         self.set_page(self.selected_page + 1);
                     }
