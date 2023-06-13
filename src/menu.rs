@@ -135,10 +135,19 @@ impl Menu {
 
             match key {
                 Key::ArrowUp | Key::Char('k') => {
-                    if self.selected_item != self.page_start { self.selected_item -= 1 }
+                    if self.selected_item != self.page_start { 
+                        self.selected_item -= 1;
+                    } else if self.selected_page != 0 {
+                        self.set_page(self.selected_page - 1);
+                        self.selected_item = self.page_end;
+                    }
                 }
                 Key::ArrowDown | Key::Char('j') => {
-                    if self.selected_item + 1 < self.page_end { self.selected_item += 1 }
+                    if self.selected_item < self.page_end { 
+                        self.selected_item += 1
+                    } else if self.selected_page < self.num_pages - 1 {
+                        self.set_page(self.selected_page + 1);
+                    }
                 }
                 Key::ArrowLeft | Key::Char('h') => {
                     if self.selected_page != 0 {
@@ -170,9 +179,9 @@ impl Menu {
         self.page_start = self.selected_page * self.items_per_page;
         self.selected_item = self.page_start;
         if self.items.len() > self.page_start + self.items_per_page {
-            self.page_end = self.page_start + self.items_per_page
+            self.page_end = self.page_start + self.items_per_page - 1
         } else {
-            self.page_end = self.items.len()
+            self.page_end = self.items.len() - 1
         }
     }
 
@@ -193,9 +202,8 @@ impl Menu {
             stdout.write_line(&format!("{}", title_style.apply_to(title))).unwrap();
         }
 
-        for (i, option) in self.items[self.page_start..self.page_end].iter().enumerate() {
-            let selected_idx = self.page_start + i;
-            if selected_idx == self.selected_item {
+        for (i, option) in self.items[self.page_start..=self.page_end].iter().enumerate() {
+            if self.page_start + i == self.selected_item {
                 let style = Style::new().bold();
                 stdout.write_line(&format!("> {}", style.apply_to(&option.label))).unwrap();
             } else {
