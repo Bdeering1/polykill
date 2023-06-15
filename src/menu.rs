@@ -1,4 +1,4 @@
-use console::{Term, Key, Style};
+use console::{Key, Style, Term};
 
 use crate::project::{Project, ProjectType};
 
@@ -31,7 +31,7 @@ pub fn project_menu(projects: Vec<Project>, verbose: bool) {
         let action = MenuAction::Delete(project);
         let menu_item = MenuItem::new(&label, action);
         menu_items.push(menu_item);
-    } 
+    }
 
     let mut menu = Menu::new(menu_items, max_path_len, verbose);
     menu.title(&menu_title);
@@ -44,15 +44,36 @@ fn create_label(project: &Project, max_path_len: usize) -> String {
     } else {
         project.project_type.to_string()
     };
+    let type_style = match project.project_type {
+        ProjectType::Cargo => Style::new().color256(214),
+        ProjectType::Node => Style::new().color256(28),
+        ProjectType::Dotnet => Style::new().color256(171),
+        ProjectType::Mix => Style::new().color256(98),
+        ProjectType::Gradle => Style::new().color256(42),
+        ProjectType::Composer => Style::new().color256(117),
+        ProjectType::Misc => Style::new().color256(147),
+    };
+
+    let last_modified = if let Some(days) = project.last_modified {
+        format!("{} days", days)
+    } else {
+        String::from("unknown")
+    };
+    let last_mod_style = match project.last_modified {
+        Some(days) if days > 180 => Style::new().red(),
+        Some(days) if days > 30 => Style::new().yellow(),
+        Some(_days) => Style::new().green(),
+        None => Style::new().red(),
+    };
+
     format!(
         "{}{}{}{}",
-        format_args!("{:<width$}", project.path.display(), width=(max_path_len + MIN_PATH_PADDING)),
-        format_args!("{:<width$}", project_type, width=PROJECT_TYPE_PADDING),
-        format_args!("{:>width$}", project.last_modified, width=LAST_MOD_PADDING),
-        format_args!("{:>width$}", project.rm_size_str, width=SIZE_PADDING)
+        format_args!("{:<width$}", project.path.display(), width = (max_path_len + MIN_PATH_PADDING)),
+        format_args!("{:<width$}", type_style.apply_to(project_type), width = PROJECT_TYPE_PADDING),
+        format_args!("{:>width$}", last_mod_style.apply_to(last_modified), width = LAST_MOD_PADDING),
+        format_args!("{:>width$}", project.rm_size_str, width = SIZE_PADDING)
     )
 }
-
 
 pub enum MenuAction {
     Delete(Project)
@@ -60,14 +81,14 @@ pub enum MenuAction {
 
 pub struct MenuItem {
     pub label: String,
-    pub action: MenuAction
+    pub action: MenuAction,
 }
 
 impl MenuItem {
     pub fn new(label: &str, action: MenuAction) -> Self {
         Self {
             label: label.to_owned(),
-            action
+            action,
         }
     }
 }
@@ -96,7 +117,7 @@ impl Menu {
             };
         if items_per_page < 1 { items_per_page = 1 }
         let items_per_page = items_per_page as usize;
-        let num_pages = ( (items.len() - 1)  / items_per_page ) + 1;
+        let num_pages = ((items.len() - 1) / items_per_page) + 1;
 
         let mut menu = Self {
             title: None,
@@ -135,7 +156,7 @@ impl Menu {
 
             match key {
                 Key::ArrowUp | Key::Char('k') => {
-                    if self.selected_item != self.page_start { 
+                    if self.selected_item != self.page_start {
                         self.selected_item -= 1;
                     } else if self.selected_page != 0 {
                         self.set_page(self.selected_page - 1);
@@ -143,7 +164,7 @@ impl Menu {
                     }
                 }
                 Key::ArrowDown | Key::Char('j') => {
-                    if self.selected_item < self.page_end { 
+                    if self.selected_item < self.page_end {
                         self.selected_item += 1
                     } else if self.selected_page < self.num_pages - 1 {
                         self.set_page(self.selected_page + 1);
@@ -169,7 +190,7 @@ impl Menu {
                 }
                 _ => {}
             }
-            
+
             self.draw(stdout);
         }
     }

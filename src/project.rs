@@ -1,8 +1,8 @@
 use std::fmt::{Display, Formatter};
-use std::fs::{ReadDir, metadata, read_dir, remove_dir_all};
-use std::path::PathBuf;
+use std::fs::{metadata, read_dir, remove_dir_all, ReadDir};
 use std::io;
-use std::time::{SystemTime, Duration};
+use std::path::PathBuf;
+use std::time::{Duration, SystemTime};
 
 #[derive(Debug)]
 pub struct Project {
@@ -11,7 +11,7 @@ pub struct Project {
     pub rm_dirs: Vec<PathBuf>,
     pub rm_size: u64,
     pub rm_size_str: String,
-    pub last_modified: String,
+    pub last_modified: Option<u64>,
 }
 
 impl Project {
@@ -19,7 +19,14 @@ impl Project {
         let rm_size = get_rm_size(&rm_dirs);
         let rm_size_str = bytes_to_string(rm_size);
         let last_modified = get_time_since_last_mod(&path);
-        Project { path, project_type, rm_dirs, rm_size, rm_size_str, last_modified }
+        Project {
+            path,
+            project_type,
+            rm_dirs,
+            rm_size,
+            rm_size_str,
+            last_modified,
+        }
     }
 
     pub fn node(path: PathBuf) -> Project {
@@ -33,12 +40,18 @@ impl Project {
     }
 
     pub fn mix(path: PathBuf) -> Project {
-        let rm_dirs = vec![path.join(PathBuf::from("_build")), path.join(PathBuf::from("deps"))];
+        let rm_dirs = vec![
+            path.join(PathBuf::from("_build")),
+            path.join(PathBuf::from("deps")),
+        ];
         Project::new(path, ProjectType::Mix, rm_dirs)
     }
 
     pub fn dotnet(path: PathBuf) -> Project {
-        let rm_dirs = vec![path.join(PathBuf::from("bin")), path.join(PathBuf::from("obj"))];
+        let rm_dirs = vec![
+            path.join(PathBuf::from("bin")),
+            path.join(PathBuf::from("obj")),
+        ];
         Project::new(path, ProjectType::Dotnet, rm_dirs)
     }
 
@@ -61,15 +74,19 @@ impl Project {
         for dir in &self.rm_dirs {
             match remove_dir_all(dir) {
                 Ok(_) => message += format!("Removed {:?}\n", dir).as_str(),
-                Err(e) => message += format!("Unable to remove {:?}: {}\n", dir, e).as_str()
+                Err(e) => message += format!("Unable to remove {:?}: {}\n", dir, e).as_str(),
             }
         }
         self.rm_size = get_rm_size(&self.rm_dirs);
         self.rm_size_str = bytes_to_string(self.rm_size);
         self.last_modified = get_time_since_last_mod(&self.path);
-        
+
         message.pop();
-        if message.is_empty() { None } else { Some(message) }
+        if message.is_empty() {
+            None
+        } else {
+            Some(message)
+        }
     }
 }
 
@@ -81,7 +98,7 @@ pub enum ProjectType {
     Dotnet,
     Gradle,
     Composer,
-    Misc
+    Misc,
 }
 
 impl Display for ProjectType {
@@ -90,31 +107,41 @@ impl Display for ProjectType {
     }
 }
 
-fn get_time_since_last_mod(path: &PathBuf) -> String {
+fn get_time_since_last_mod(path: &PathBuf) -> Option<u64> {
     const SECONDS_PER_DAY: u64 = 86400;
     let meta = metadata(path);
 
-    if meta.is_err() { return String::from("Unknown"); }
+    if meta.is_err() {
+        return None;
+    }
     let meta = meta.unwrap();
     let last_mod = meta.modified();
 
-    if last_mod.is_err() { return String::from("Unknown"); }
+    if last_mod.is_err() {
+        return None;
+    }
     let last_mod = last_mod.unwrap();
     let time_since = SystemTime::now().duration_since(last_mod);
 
-    if time_since.is_err() { return String::from("Unknown"); }
-    let time_since_days = time_since.unwrap().as_secs() / Duration::from_secs(SECONDS_PER_DAY).as_secs();
-    format!("{} days", time_since_days)
+    if time_since.is_err() {
+        return None;
+    }
+    Some(time_since.unwrap().as_secs() / Duration::from_secs(SECONDS_PER_DAY).as_secs())
+    // Some((time_since.unwrap().as_secs() + 39) % 250)
 }
 
 fn get_rm_size(rm_dirs: &Vec<PathBuf>) -> u64 {
     let mut size = 0;
     for dir in rm_dirs {
         let path_exists = dir.try_exists();
-        if path_exists.is_err() { continue; }
+        if path_exists.is_err() {
+            continue;
+        }
 
         let dir_size = dir_size(dir);
-        if dir_size.is_err() { continue; }
+        if dir_size.is_err() {
+            continue;
+        }
 
         size += dir_size.unwrap();
     }
@@ -140,7 +167,7 @@ fn bytes_to_string(bytes: u64) -> String {
     const KB: u64 = 1000;
     const BASE: f64 = 6.931471806;
     const PREFIXES: &[u8] = "KMGT".as_bytes();
-    
+
     if bytes < KB {
         format!("{}  B", bytes)
     } else {
@@ -149,7 +176,7 @@ fn bytes_to_string(bytes: u64) -> String {
             e if e == 0 => 1,
             e => e,
         };
-        
+
         format!(
             "{:.1} {}B",
             (size / KB.pow(exponent as u32) as f64),
