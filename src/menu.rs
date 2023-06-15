@@ -1,4 +1,5 @@
-use console::{Key, Style, Term};
+
+use console::{Key, Style, Term, pad_str, Alignment};
 
 use crate::project::{Project, ProjectType};
 
@@ -44,6 +45,12 @@ fn create_label(project: &Project, max_path_len: usize) -> String {
     } else {
         project.project_type.to_string()
     };
+    let last_modified = if let Some(days) = project.last_modified {
+        format!("{} days", days)
+    } else {
+        String::from("unknown")
+    };
+    
     let type_color = match project.project_type {
         ProjectType::Cargo => 214,
         ProjectType::Node => 28,
@@ -53,26 +60,32 @@ fn create_label(project: &Project, max_path_len: usize) -> String {
         ProjectType::Composer => 117,
         ProjectType::Misc => 147,
     };
-
-    let last_modified = if let Some(days) = project.last_modified {
-        format!("{} days", days)
-    } else {
-        String::from("unknown")
-    };
     let last_mod_color = match project.last_modified {
-        Some(days) if days > 180 => 1,//Style::new().red(),
-        Some(days) if days > 30 => 3,//Style::new().yellow(),
-        Some(_days) => 2,//Style::new().green(),
-        None => 1,//Style::new().red(),
+        Some(days) if days > 180 => 1,
+        Some(days) if days > 30 => 3,
+        Some(_days) => 2,
+        None => 1,
     };
 
     format!(
         "{}{}{}{}",
-        format_args!("{:<width$}", project.path.display(), width = (max_path_len + MIN_PATH_PADDING)),
-        format_args!("\x1b[38;5;{}m{:<width$}\x1b[39m", type_color, project_type, width = PROJECT_TYPE_PADDING),
-        format_args!("\x1b[38;5;{}m{:>width$}\x1b[39m", last_mod_color, last_modified, width = LAST_MOD_PADDING),
-        format_args!("{:>width$}", project.rm_size_str, width = SIZE_PADDING)
+        pad_right(project.path.display().to_string(), max_path_len + MIN_PATH_PADDING),
+        pad_right(apply_color256(project_type, type_color), PROJECT_TYPE_PADDING),
+        pad_left(apply_color256(last_modified, last_mod_color), LAST_MOD_PADDING),
+        pad_left(project.rm_size_str.to_owned(), SIZE_PADDING),
     )
+}
+
+fn pad_left(s: String, width: usize) -> String {
+    pad_str(&s, width, Alignment::Right, None).to_string()
+}
+
+fn pad_right(s: String, width: usize) -> String {
+    pad_str(&s, width, Alignment::Left, None).to_string()
+}
+
+fn apply_color256(input: String, color: u32) -> String {
+    format!("\x1b[38;5;{}m{}\x1b[39m", color, input)
 }
 
 pub enum MenuAction {
