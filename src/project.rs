@@ -127,7 +127,6 @@ fn get_time_since_last_mod(path: &PathBuf) -> Option<u64> {
         return None;
     }
     Some(time_since.unwrap().as_secs() / Duration::from_secs(SECONDS_PER_DAY).as_secs())
-    // Some((time_since.unwrap().as_secs() + 39) % 250)
 }
 
 fn get_rm_size(rm_dirs: &Vec<PathBuf>) -> u64 {

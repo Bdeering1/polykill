@@ -1,4 +1,3 @@
-
 use console::{Key, Style, Term, pad_str, Alignment};
 
 use crate::project::{Project, ProjectType};
@@ -50,7 +49,7 @@ fn create_label(project: &Project, max_path_len: usize) -> String {
     } else {
         String::from("unknown")
     };
-    
+
     let type_color = match project.project_type {
         ProjectType::Cargo => 214,
         ProjectType::Node => 28,
@@ -66,13 +65,18 @@ fn create_label(project: &Project, max_path_len: usize) -> String {
         Some(_days) => 2,
         None => 1,
     };
+    let rm_size_color = match project.rm_size {
+        size if size > 1000_000_000 => 1,
+        size if size > 100_000_000 => 3,
+        _ => 2,
+    };
 
     format!(
         "{}{}{}{}",
         pad_right(project.path.display().to_string(), max_path_len + MIN_PATH_PADDING),
         pad_right(apply_color256(project_type, type_color), PROJECT_TYPE_PADDING),
         pad_left(apply_color256(last_modified, last_mod_color), LAST_MOD_PADDING),
-        pad_left(project.rm_size_str.to_owned(), SIZE_PADDING),
+        pad_left(apply_color256(project.rm_size_str.to_owned(), rm_size_color), SIZE_PADDING),
     )
 }
 
