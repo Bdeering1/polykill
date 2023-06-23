@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{path::Path, cmp::Reverse};
 use clap::Parser;
 use console::Term;
 
@@ -20,6 +20,10 @@ pub struct PolykillArgs {
     /// Include projects not tracked by git
     #[arg(short, long)]
     pub no_git: bool,
+
+    /// Don't perform sorting (results will appear in the order searched)
+    #[arg(long)]
+    pub no_sort: bool,
 
     /// Hide projects with zero possible disk savings
     #[arg(short, long)]
@@ -78,7 +82,10 @@ fn main() {
         return;
     }
 
-    projects.sort_by_key(|p| p.project_type);
+    if !args.no_sort {
+        projects.sort_by_key(|p| Reverse(p.rm_size));
+        projects.sort_by_key(|p| p.project_type);
+    }
     
     if !args.dry_run {
         menu::project_menu(projects, args.verbose);
