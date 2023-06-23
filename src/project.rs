@@ -90,15 +90,15 @@ impl Project {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, Ord, Eq, PartialOrd, PartialEq)]
 pub enum ProjectType {
-    Node,
     Cargo,
-    Mix,
+    Composer,
     Dotnet,
     Gradle,
-    Composer,
     Misc,
+    Mix,
+    Node,
 }
 
 impl Display for ProjectType {

@@ -78,6 +78,8 @@ fn main() {
         return;
     }
 
+    projects.sort_by_key(|p| p.project_type);
+    
     if !args.dry_run {
         menu::project_menu(projects, args.verbose);
     }
