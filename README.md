@@ -38,6 +38,7 @@ Press *q* or *esc* to exit.
 | -v, --verbose    | Verbose output                                |
 | -n, --no-git     | Include projects not tracked by git           |
 | -s, --skip-empty | Hide projects with zero possible disk savings |
+| -u, --unsorted   | Don't sort projects                           |
 | -h, --help       | Print help                                    |
 | -V, --version    | Print version                                 |
 

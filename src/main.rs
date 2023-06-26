@@ -21,9 +21,9 @@ pub struct PolykillArgs {
     #[arg(short, long)]
     pub no_git: bool,
 
-    /// Don't perform sorting (results will appear in the order searched)
-    #[arg(long)]
-    pub no_sort: bool,
+    /// Don't sort projects
+    #[arg(short, long)]
+    pub unsorted: bool,
 
     /// Hide projects with zero possible disk savings
     #[arg(short, long)]
@@ -82,7 +82,7 @@ fn main() {
         return;
     }
 
-    if !args.no_sort {
+    if !args.unsorted {
         projects.sort_by_key(|p| Reverse(p.rm_size));
         projects.sort_by_key(|p| p.project_type);
     }
