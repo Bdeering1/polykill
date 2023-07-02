@@ -1,4 +1,4 @@
-use std::{process::{Command, Stdio}, io::Write};
+use std::process::Command;
 
 use assert_cmd::prelude::{CommandCargoExt, OutputAssertExt};
 use assert_fs::prelude::{PathChild, FileTouch, PathCreateDir};
@@ -8,7 +8,7 @@ use predicates::prelude::predicate::str;
 fn path_does_not_exist() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("polykill")?;
 
-    cmd.arg("path/does/not/exist");
+    cmd.args(["--dry-run", "path/does/not/exist"]);
     cmd.assert()
         .success()
         .stdout(str::contains("does not exist"));
@@ -20,7 +20,7 @@ fn path_does_not_exist() -> Result<(), Box<dyn std::error::Error>> {
 fn is_a_file() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("polykill")?;
 
-    cmd.arg("Cargo.toml");
+    cmd.args(["--dry-run", "Cargo.toml"]);
     cmd.assert()
         .success()
         .stdout(str::contains("is a file"));
@@ -50,13 +50,8 @@ fn project_found() -> Result<(), Box<dyn std::error::Error>> {
     test_proj.child(".git").touch()?;
     test_proj.child("bin").touch()?;
 
-    
     let mut cmd = Command::cargo_bin("polykill")?;
     cmd.args(["--dry-run", test_dir.path().to_str().unwrap()]);
-    
-    let mut proc = cmd.stdin(Stdio::piped()).spawn().unwrap();
-    proc.stdin.as_mut().unwrap().write_fmt(format_args!("q"))?;
-    proc.wait()?;
     
     cmd.assert()
         .success()

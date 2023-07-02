@@ -111,21 +111,15 @@ fn get_time_since_last_mod(path: &PathBuf) -> Option<u64> {
     const SECONDS_PER_DAY: u64 = 86400;
     let meta = metadata(path);
 
-    if meta.is_err() {
-        return None;
-    }
+    if meta.is_err() { return None; }
     let meta = meta.unwrap();
     let last_mod = meta.modified();
 
-    if last_mod.is_err() {
-        return None;
-    }
+    if last_mod.is_err() { return None; }
     let last_mod = last_mod.unwrap();
     let time_since = SystemTime::now().duration_since(last_mod);
 
-    if time_since.is_err() {
-        return None;
-    }
+    if time_since.is_err() { return None; }
     Some(time_since.unwrap().as_secs() / Duration::from_secs(SECONDS_PER_DAY).as_secs())
 }
 
