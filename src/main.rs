@@ -83,7 +83,7 @@ fn main() {
     }
 
     if !args.unsorted {
-        projects.sort_by_key(|p| Reverse(p.rm_size));
+        projects.sort_unstable_by_key(|p| Reverse(p.rm_size));
         projects.sort_by_key(|p| p.project_type);
     }
     
