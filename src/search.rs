@@ -15,7 +15,11 @@ pub fn find_projects(path: &Path, max_depth: u32) -> Vec<Project> {
         let path = entry.unwrap().path();
         if !path.is_dir() { continue; }
 
-        check_for_project(&mut projects, path, max_depth - 1);
+        if let Some(project) = check_for_project(path.clone()) {
+            projects.push(project);
+        } else {
+            projects.append(&mut find_projects(&path, max_depth - 1));
+        }
     }
     projects
 }
@@ -32,7 +36,11 @@ pub fn find_git_projects(path: &Path) -> Vec<Project> {
         if !path.is_dir() { continue; }
 
         if is_repo(&path) {
-            check_for_project(&mut projects, path, 2);
+            if let Some(project) = check_for_project(path.clone()) {
+                projects.push(project);
+            } else {
+                projects.append(&mut find_projects(&path, 2));
+            }
         } else {
             projects.append(&mut find_git_projects(&path));
         }
@@ -40,23 +48,23 @@ pub fn find_git_projects(path: &Path) -> Vec<Project> {
     projects
 }
 
-fn check_for_project(projects: &mut Vec<Project>, path: PathBuf, max_depth: u32) {
+fn check_for_project(path: PathBuf) -> Option<Project> {
     if is_node(&path) {
-        projects.push(Project::node(path));
+        Some(Project::node(path))
     } else if is_cargo(&path) {
-        projects.push(Project::cargo(path));
+        Some(Project::cargo(path))
     } else if is_mix(&path) {
-        projects.push(Project::mix(path));
+        Some(Project::mix(path))
     } else if is_dotnet(&path) {
-        projects.push(Project::dotnet(path));
+        Some(Project::dotnet(path))
     } else if is_gradle(&path) {
-        projects.push(Project::gradle(path));
+        Some(Project::gradle(path))
     } else if is_composer(&path) {
-        projects.push(Project::composer(path));
+        Some(Project::composer(path))
     } else if let Some(rm_dir) = is_misc_project(&path) {
-        projects.push(Project::misc(path.to_owned(), vec![path.join(rm_dir)]));
+        Some(Project::misc(path.to_owned(), vec![path.join(rm_dir)]))
     } else {
-        projects.append(&mut find_projects(&path, max_depth));
+        None
     }
 }
 
