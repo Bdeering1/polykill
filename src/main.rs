@@ -7,7 +7,9 @@ mod project;
 mod search;
 
 #[derive(Debug, Parser)]
-#[clap(author, about, version)]
+#[clap(author, version, verbatim_doc_comment)]
+/// Lightweight command line utility for removing dependencies and build artifacts from unused local projects.
+/// Use ↓,↑,←,→ to select a project, enter to delete artifacts, and q to quit. Also support vim style bindings.
 pub struct PolykillArgs {
     #[clap(default_value_t = String::from("."))]
     /// The directory to search for projects

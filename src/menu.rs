@@ -187,12 +187,12 @@ impl Menu {
                         self.set_page(self.selected_page + 1);
                     }
                 }
-                Key::ArrowLeft | Key::Char('h') => {
+                Key::ArrowLeft | Key::Char('h') | Key::Char('b') => {
                     if self.selected_page != 0 {
                         self.set_page(self.selected_page - 1);
                     }
                 }
-                Key::ArrowRight | Key::Char('l') => {
+                Key::ArrowRight | Key::Char('l') | Key::Char('w') => {
                     if self.selected_page < self.num_pages - 1 {
                         self.set_page(self.selected_page + 1);
                     }
@@ -235,7 +235,7 @@ impl Menu {
 
         if let Some(title) = &self.title {
             let controls_style = Style::new().dim();
-            stdout.write_line(&format!("{}", controls_style.apply_to("  ↓,↑,←,→ to select project, enter to delete artifacts\n"))).unwrap();
+            stdout.write_line(&format!("{}", controls_style.apply_to("  ↓,↑,←,→: select project |  enter: delete artifacts |  q: quit\n"))).unwrap();
             let title_style = Style::new().bold();
             stdout.write_line(&format!("{}", title_style.apply_to(title))).unwrap();
         }
