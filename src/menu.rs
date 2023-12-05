@@ -1,4 +1,4 @@
-use console::{Key, Style, Term, pad_str, Alignment};
+use console::{Key, Term};
 
 use crate::project::{Project, ProjectType};
 
@@ -73,23 +73,27 @@ fn create_label(project: &Project, max_path_len: usize) -> String {
 
     format!(
         "{}{}{}{}",
-        pad_right(project.path.display().to_string(), max_path_len + MIN_PATH_PADDING),
-        pad_right(apply_color256(project_type, type_color), PROJECT_TYPE_PADDING),
-        pad_left(apply_color256(last_modified, last_mod_color), LAST_MOD_PADDING),
-        pad_left(apply_color256(project.rm_size_str.to_owned(), rm_size_color), SIZE_PADDING),
+        pad_right(&project.path.display().to_string(), max_path_len + MIN_PATH_PADDING),
+        apply_color256(&pad_right(&project_type, PROJECT_TYPE_PADDING), type_color),
+        apply_color256(&pad_left(&last_modified, LAST_MOD_PADDING), last_mod_color),
+        apply_color256(&pad_left(&project.rm_size_str, SIZE_PADDING), rm_size_color),
     )
 }
 
-fn pad_left(s: String, width: usize) -> String {
-    pad_str(&s, width, Alignment::Right, None).to_string()
+fn pad_left(s: &str, width: usize) -> String {
+    format!("{: >width$}", s, width=width)
 }
 
-fn pad_right(s: String, width: usize) -> String {
-    pad_str(&s, width, Alignment::Left, None).to_string()
+fn pad_right(s: &str, width: usize) -> String {
+    format!("{: <width$}", s, width=width)
 }
 
-fn apply_color256(input: String, color: u32) -> String {
+fn apply_color256(input: &str, color: u32) -> String {
     format!("\x1b[38;5;{}m{}\x1b[39m", color, input)
+}
+
+fn sgr_seq_wrap(s: &str, open: u32, close: u32) -> String {
+    format!("\x1b[{}m{}\x1b[{}m", open, s, close)
 }
 
 pub enum MenuAction {
@@ -234,25 +238,22 @@ impl Menu {
         stdout.clear_screen().unwrap();
 
         if let Some(title) = &self.title {
-            let controls_style = Style::new().dim();
-            stdout.write_line(&format!("{}", controls_style.apply_to("  ↓,↑,←,→: select project |  enter: delete artifacts |  q: quit\n"))).unwrap();
-            let title_style = Style::new().bold();
-            stdout.write_line(&format!("{}", title_style.apply_to(title))).unwrap();
+            let controls_str = "  ↓,↑,←,→: select project |  enter: delete artifacts |  q: quit\n";
+            stdout.write_line(&sgr_seq_wrap(controls_str, 2, 22)).unwrap();
+            stdout.write_line(&sgr_seq_wrap(title, 1, 22)).unwrap();
         }
 
-        for (i, option) in self.items[self.page_start..=self.page_end].iter().enumerate() {
+        for (i, item) in self.items[self.page_start..=self.page_end].iter().enumerate() {
             if self.page_start + i == self.selected_item {
-                let style = Style::new().bold();
-                stdout.write_line(&format!("> {}", style.apply_to(&option.label))).unwrap();
+                stdout.write_line(&sgr_seq_wrap(&format!("> {}", item.label), 1, 22)).unwrap();
             } else {
-                stdout.write_line(&format!("  {}", option.label)).unwrap();
+                stdout.write_line(&format!("  {}", item.label)).unwrap();
             }
         }
         stdout.write_line(&format!("Page {} of {}", self.selected_page + 1, self.num_pages)).unwrap();
 
         if let Some(message) = &self.message {
-            let style = Style::new().red();
-            stdout.write_line(&format!("\n{}", style.apply_to(message))).unwrap();
+            stdout.write_line(&apply_color256(&format!("\n{}", message), 9)).unwrap();
         }
 
         stdout.flush().unwrap();
