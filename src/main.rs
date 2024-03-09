@@ -19,9 +19,9 @@ pub struct PolykillArgs {
     #[arg(short, long)]
     pub verbose: bool,
 
-    /// Include projects not tracked by git
-    #[arg(short, long)]
-    pub no_git: bool,
+    /// Include projects not tracked by supported version control systems
+    #[arg(long)]
+    pub no_vcs: bool,
 
     /// Don't sort projects
     #[arg(short, long)]
@@ -70,7 +70,7 @@ fn main() {
     }
 
     let mut projects =
-        if args.no_git {
+        if args.no_vcs {
             search::find_projects(path,MAX_SEARCH_DEPTH)
         } else {
             search::find_git_projects(path)

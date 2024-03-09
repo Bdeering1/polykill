@@ -98,6 +98,8 @@ fn is_misc_project(path: &Path) -> Option<PathBuf> {
 }
 fn is_repo(path: &Path) -> bool {
     contains_entry(path, ".git")
+    || contains_entry(path, ".svn")
+    || contains_entry(path, ".hg")
 }
 
 fn contains_entry(path: &Path, entry: &str) -> bool {
