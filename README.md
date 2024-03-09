@@ -25,9 +25,15 @@ polykill [OPTIONS] [DIR]
 
 Polykill will recursively search for projects in the provided directory and output a list of all projects found. If no directory is provided, the current directory will be searched.
 
-Move between listed projects using ↓,↑,←,→ and press enter to delete artifacts for the selected project.
+When the search has completed, navigate the menu using the following controls:
 
-Press *q* or *esc* to exit.
+| Key Bind | Action           |
+| -------- | ---------------- |
+| ↓, ↑, ←, →, h, j, k, l | make selection        |
+| enter, del    | remove artifacts |
+| esc, q   | exit             |
+
+Removing artifacts involves removing the build/dependency directories associated with a project type.
 
 **Warning for Node projects:** Some Node applications need their node_modules directory to work and deleting it may break them.
 
@@ -36,13 +42,13 @@ Press *q* or *esc* to exit.
 | Argument         | Description                                   |
 | ---------------- | --------------------------------------------- |
 | -v, --verbose    | Verbose output                                |
-| -n, --no-git     | Include projects not tracked by git           |
 | -s, --skip-empty | Hide projects with zero possible disk savings |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--no-vcs     | Include projects without version control (will slow down search) |
 | -u, --unsorted   | Don't sort projects                           |
 | -h, --help       | Print help                                    |
 | -V, --version    | Print version                                 |
 
-*--no-git option will slow down project search
+*supported version control systems are: git, svn, and mercurial
 
 ## Additional Information
 

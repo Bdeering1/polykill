@@ -191,12 +191,12 @@ impl Menu {
                         self.set_page(self.selected_page + 1);
                     }
                 }
-                Key::ArrowLeft | Key::Char('h') | Key::Char('b') => {
+                Key::ArrowLeft | Key::Char('h') => {
                     if self.selected_page != 0 {
                         self.set_page(self.selected_page - 1);
                     }
                 }
-                Key::ArrowRight | Key::Char('l') | Key::Char('w') => {
+                Key::ArrowRight | Key::Char('l') => {
                     if self.selected_page < self.num_pages - 1 {
                         self.set_page(self.selected_page + 1);
                     }
