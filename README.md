@@ -27,11 +27,11 @@ Polykill will recursively search for projects in the provided directory and outp
 
 When the search has completed, navigate the menu using the following controls:
 
-| Key Bind | Action           |
-| -------- | ---------------- |
-| ↓, ↑, ←, →, h, j, k, l | make selection        |
-| enter, del    | remove artifacts |
-| esc, q   | exit             |
+| Key Bind   | Action           |
+| ---------- | ---------------- |
+| ↓, ↑, ←, →, h, j, k, l | select project |
+| enter, del | remove artifacts |
+| esc, q     | exit             |
 
 Removing artifacts involves removing the build/dependency directories associated with a project type.
 
@@ -43,7 +43,7 @@ Removing artifacts involves removing the build/dependency directories associated
 | ---------------- | --------------------------------------------- |
 | -v, --verbose    | Verbose output                                |
 | -s, --skip-empty | Hide projects with zero possible disk savings |
-| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--no-vcs     | Include projects without version control (will slow down search) |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--no-vcs | Include projects without version control (will slow down search) |
 | -u, --unsorted   | Don't sort projects                           |
 | -h, --help       | Print help                                    |
 | -V, --version    | Print version                                 |
