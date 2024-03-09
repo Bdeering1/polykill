@@ -8,11 +8,10 @@ mod search;
 
 #[derive(Debug, Parser)]
 #[clap(author, version, verbatim_doc_comment)]
-/// Lightweight command line utility for removing dependencies and build artifacts from unused local projects.
-/// Use ↓,↑,←,→ to select a project, enter to delete artifacts, and q to quit. Also support vim style bindings.
+/// Remove unwanted dependencies and build artifacts from local projects
 pub struct PolykillArgs {
     #[clap(default_value_t = String::from("."))]
-    /// The directory to search for projects
+    /// Directory to search for projects
     pub dir: String,
 
     /// Verbose output
@@ -23,7 +22,7 @@ pub struct PolykillArgs {
     #[arg(long)]
     pub no_vcs: bool,
 
-    /// Don't sort projects
+    /// Don't sort indexed projects
     #[arg(short, long)]
     pub unsorted: bool,
 
@@ -37,7 +36,7 @@ pub struct PolykillArgs {
 }
 
 fn main() {
-    const MAX_SEARCH_DEPTH: u32 = 10; // only applies if --no-git flag is specified
+    const MAX_SEARCH_DEPTH: u32 = 10; // only applies if --no-vcs flag is specified
 
     let args = PolykillArgs::parse();
     let path = Path::new(args.dir.as_str());

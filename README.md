@@ -1,6 +1,6 @@
 # Polykill
 
-Lightweight command line utility for removing dependencies and build artifacts from unused local projects. Inspired by [npkill](https://www.npmjs.com/package/npkill#usage).
+Lightweight utility for removing unwanted dependencies and build artifacts from local projects. Inspired by [npkill](https://www.npmjs.com/package/npkill).
 
 Supported project types:
 - Cargo
@@ -9,7 +9,7 @@ Supported project types:
 - .NET Core
 - Gradle
 - Composer
-- Misc (see "Addional Information")
+- Misc. (see "Addional Information")
 
 ## Installation
 
@@ -56,4 +56,4 @@ How projects are identified and which directories are used for dependencies and 
 | .NET Core | .csproj            | bin, obj         |
 | Gradle    | build.gradle(.kts) | build            |
 | Composer  | composer.json      | vendor           |
-| Misc      | bin, build, dist   | bin, build, dist |
+| Misc.     | bin, build, dist   | bin, build, dist |
