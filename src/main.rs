@@ -1,45 +1,54 @@
 use std::{path::Path, cmp::Reverse};
-use clap::Parser;
+use gumdrop::Options;
 use console::Term;
 
 mod menu;
 mod project;
 mod search;
 
-#[derive(Debug, Parser)]
-#[clap(author, version, verbatim_doc_comment)]
+#[derive(Debug, Options)]
 /// Remove unwanted dependencies and build artifacts from local projects
 pub struct PolykillArgs {
-    #[clap(default_value_t = String::from("."))]
-    /// Directory to search for projects
+    /// Directory to search for projects [default: .]
+    #[options(free)]
     pub dir: String,
 
+    /// Print help
+    #[options()]
+    pub help: bool,
+
+    /// Print version
+    #[options()]
+    pub version: bool,
+
     /// Verbose output
-    #[arg(short, long)]
+    #[options()]
     pub verbose: bool,
 
     /// Include projects not tracked by supported version control systems
-    #[arg(long)]
+    #[options(no_short)]
     pub no_vcs: bool,
 
     /// Don't sort indexed projects
-    #[arg(short, long)]
+    #[options()]
     pub unsorted: bool,
 
     /// Hide projects with zero possible disk savings
-    #[arg(short, long)]
+    #[options()]
     pub skip_empty: bool,
 
     /// Don't bring up project menu (for testing purposes only)
-    #[arg(long)]
+    #[options(no_short)]
     pub dry_run: bool,
 }
 
 fn main() {
     const MAX_SEARCH_DEPTH: u32 = 10; // only applies if --no-vcs flag is specified
 
-    let args = PolykillArgs::parse();
-    let path = Path::new(args.dir.as_str());
+    let args = PolykillArgs::parse_args_default_or_exit();
+
+    let path_str = if args.dir.is_empty() { "." } else { args.dir.as_str() };
+    let path = Path::new(path_str);
     if !path.exists() {
         println!("Path '{}' does not exist.", path.display());
         return;
