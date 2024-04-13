@@ -1,4 +1,4 @@
-use std::{path::Path, cmp::Reverse};
+use std::{env::args, path::Path, cmp::Reverse};
 use gumdrop::Options;
 use console::Term;
 
@@ -11,7 +11,7 @@ mod search;
 pub struct PolykillArgs {
     /// Directory to search for projects [default: .]
     #[options(free)]
-    pub dir: String,
+    pub dir: Option<String>,
 
     /// Print help
     #[options()]
@@ -42,19 +42,40 @@ pub struct PolykillArgs {
     pub dry_run: bool,
 }
 
+fn print_usage() {
+    println!("\nUsage: polykill [OPTIONS] [DIR]");
+    println!("\nFor more information try --help.");
+}
+
 fn main() {
     const MAX_SEARCH_DEPTH: u32 = 10; // only applies if --no-vcs flag is specified
 
-    let args = PolykillArgs::parse_args_default_or_exit();
+    let args = args().skip(1).collect::<Vec<_>>();
+    let args = PolykillArgs::parse_args_default(&args);
+    let args = match args {
+        Ok(args) => args,
+        Err(e) => {
+            eprintln!("{}", e);
+            print_usage();
+            return;
+        }
+    };
 
-    let path_str = if args.dir.is_empty() { "." } else { args.dir.as_str() };
-    let path = Path::new(path_str);
+    if args.help {
+        println!("{}", PolykillArgs::usage());
+        return;
+    }
+
+    let path_str = args.dir.unwrap_or(".".to_string());
+    let path = Path::new(&path_str);
     if !path.exists() {
         println!("Path '{}' does not exist.", path.display());
+        print_usage();
         return;
     }
     if path.is_file() {
         println!("'{}' is a file, please specify a directory.", path.display());
+        print_usage();
         return;
     }
 
