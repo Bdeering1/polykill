@@ -80,6 +80,10 @@ fn create_label(project: &Project, max_path_len: usize) -> String {
     )
 }
 
+pub fn ansi_clear_screen() -> String {
+    String::from("\x1b[H\x1b[J\x1b[H")
+}
+
 fn pad_left(s: &str, width: usize) -> String {
     format!("{: >width$}", s, width=width)
 }
@@ -165,7 +169,6 @@ impl Menu {
         let stdout = Term::buffered_stdout();
 
         stdout.hide_cursor().unwrap();
-        stdout.clear_screen().unwrap();
 
         self.draw(&stdout);
         self.run_navigation(&stdout);
@@ -235,7 +238,7 @@ impl Menu {
     }
 
     fn draw(&self, stdout: &Term) {
-        stdout.clear_screen().unwrap();
+        stdout.write_line(&ansi_clear_screen()).unwrap();
 
         if let Some(title) = &self.title {
             let controls_str = "  ↓,↑,←,→: select project |  enter: delete artifacts |  q: quit\n";
@@ -260,7 +263,7 @@ impl Menu {
     }
 
     fn exit(&self, stdout: &Term) {
-        stdout.clear_screen().unwrap();
+        stdout.write_line(&ansi_clear_screen()).unwrap();
         stdout.show_cursor().unwrap();
         stdout.flush().unwrap();
     }
