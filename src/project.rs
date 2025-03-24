@@ -93,6 +93,7 @@ impl Project {
             } else {
                 remove_file(path)
             };
+
             match res {
                 Ok(_) => message += format!("Removed {:?}\n", path).as_str(),
                 Err(e) => message += format!("Unable to remove {:?}: {}\n", path, e).as_str(),

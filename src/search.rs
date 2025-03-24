@@ -13,7 +13,7 @@ pub fn find_projects(path: &Path, max_depth: u32) -> Vec<Project> {
         if entry.is_err() { continue; }
 
         let path = entry.unwrap().path();
-        if !path.is_dir() { continue; }
+        if !path.is_dir() || path.file_name().unwrap().as_encoded_bytes()[0] == b'.' { continue; }
 
         if let Some(project) = check_for_project(path.clone()) {
             projects.push(project);
@@ -33,7 +33,7 @@ pub fn find_git_projects(path: &Path) -> Vec<Project> {
         if entry.is_err() { continue; }
 
         let path = entry.unwrap().path();
-        if !path.is_dir() { continue; }
+        if !path.is_dir() || path.file_name().unwrap().as_encoded_bytes()[0] == b'.' { continue; }
 
         if is_repo(&path) {
             if let Some(project) = check_for_project(path.clone()) {
