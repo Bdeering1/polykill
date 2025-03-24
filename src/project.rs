@@ -146,25 +146,25 @@ fn get_time_since_last_mod(path: &PathBuf) -> Option<u64> {
     Some(time_since.unwrap().as_secs() / Duration::from_secs(SECONDS_PER_DAY).as_secs())
 }
 
-fn get_rm_size(rm_dirs: &Vec<PathBuf>) -> u64 {
+fn get_rm_size(rm_paths: &Vec<PathBuf>) -> u64 {
     let mut size = 0;
-    for dir in rm_dirs {
-        let path_exists = dir.try_exists();
-        if path_exists.is_err() {
-            continue;
-        }
+    for path in rm_paths {
+        let path_exists = path.try_exists();
+        if path_exists.is_err() { continue; }
 
-        let dir_size = dir_size(dir);
-        if dir_size.is_err() {
-            continue;
-        }
+        let entry_size = compute_size(path);
+        if entry_size.is_err() { continue; }
 
-        size += dir_size.unwrap();
+        size += entry_size.unwrap();
     }
     size
 }
 
-fn dir_size(path: &PathBuf) -> io::Result<u64> {
+fn compute_size(path: &PathBuf) -> io::Result<u64> {
+    if !path.is_dir() {
+        return Ok(path.metadata()?.len());
+    }
+
     fn dir_size(mut dir: ReadDir) -> io::Result<u64> {
         dir.try_fold(0, |acc, file| {
             let file = file?;
