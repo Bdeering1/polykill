@@ -53,14 +53,16 @@ fn check_for_project(path: PathBuf) -> Option<Project> {
         Some(Project::node(path))
     } else if is_cargo(&path) {
         Some(Project::cargo(path))
-    } else if is_mix(&path) {
-        Some(Project::mix(path))
     } else if is_dotnet(&path) {
         Some(Project::dotnet(path))
+    } else if is_golang(&path) {
+        Some(Project::golang(path))
     } else if is_gradle(&path) {
         Some(Project::gradle(path))
     } else if is_composer(&path) {
         Some(Project::composer(path))
+    } else if is_mix(&path) {
+        Some(Project::mix(path))
     } else if let Some(rm_dir) = is_misc_project(&path) {
         Some(Project::misc(path.to_owned(), vec![path.join(rm_dir)]))
     } else {
@@ -79,6 +81,9 @@ fn is_mix(path: &Path) -> bool {
 }
 fn is_dotnet(path: &Path) -> bool {
     contains_file_regex(path, ".csproj")
+}
+fn is_golang(path: &Path) -> bool {
+    contains_entry(path, "go.mod")
 }
 fn is_gradle(path: &Path) -> bool {
     contains_entry(path, "build.gradle") || contains_entry(path, "build.gradle.kts")

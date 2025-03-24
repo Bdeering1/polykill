@@ -1,5 +1,5 @@
 use std::fmt::{Display, Formatter};
-use std::fs::{metadata, read_dir, remove_dir_all, ReadDir};
+use std::fs::{metadata, read_dir, remove_dir_all, remove_file, ReadDir};
 use std::io;
 use std::path::PathBuf;
 use std::time::{Duration, SystemTime};
@@ -8,21 +8,21 @@ use std::time::{Duration, SystemTime};
 pub struct Project {
     pub path: PathBuf,
     pub project_type: ProjectType,
-    pub rm_dirs: Vec<PathBuf>,
+    pub rm_paths: Vec<PathBuf>,
     pub rm_size: u64,
     pub rm_size_str: String,
     pub last_modified: Option<u64>,
 }
 
 impl Project {
-    pub fn new(path: PathBuf, project_type: ProjectType, rm_dirs: Vec<PathBuf>) -> Project {
-        let rm_size = get_rm_size(&rm_dirs);
+    pub fn new(path: PathBuf, project_type: ProjectType, rm_paths: Vec<PathBuf>) -> Project {
+        let rm_size = get_rm_size(&rm_paths);
         let rm_size_str = bytes_to_string(rm_size);
         let last_modified = get_time_since_last_mod(&path);
         Project {
             path,
             project_type,
-            rm_dirs,
+            rm_paths,
             rm_size,
             rm_size_str,
             last_modified,
@@ -30,54 +30,75 @@ impl Project {
     }
 
     pub fn cargo(path: PathBuf) -> Project {
-        let rm_dirs = vec![path.join(PathBuf::from("target"))];
-        Project::new(path, ProjectType::Cargo, rm_dirs)
+        let rm_paths = vec![path.join(PathBuf::from("target"))];
+        Project::new(path, ProjectType::Cargo, rm_paths)
     }
 
     pub fn composer(path: PathBuf) -> Project {
-        let rm_dirs = vec![path.join(PathBuf::from("vendor"))];
-        Project::new(path, ProjectType::Composer, rm_dirs)
+        let rm_paths = vec![path.join(PathBuf::from("vendor"))];
+        Project::new(path, ProjectType::Composer, rm_paths)
     }
 
     pub fn dotnet(path: PathBuf) -> Project {
-        let rm_dirs = vec![
+        let rm_paths = vec![
             path.join(PathBuf::from("bin")),
             path.join(PathBuf::from("obj")),
         ];
-        Project::new(path, ProjectType::Dotnet, rm_dirs)
+        Project::new(path, ProjectType::Dotnet, rm_paths)
+    }
+
+    pub fn golang(path: PathBuf) -> Project {
+        let dir_name = PathBuf::from(path.file_name().unwrap());
+        let rm_paths = if !cfg!(windows) {
+            vec![
+                path.join(dir_name.to_owned()),
+                path.join(dir_name.with_extension("test")),
+            ]
+        } else {
+            vec![
+                path.join(dir_name.to_owned().with_extension("exe")),
+                path.join(dir_name.with_extension("test.exe")),
+            ]
+        };
+        Project::new(path, ProjectType::Golang, rm_paths)
     }
 
     pub fn gradle(path: PathBuf) -> Project {
-        let rm_dirs = vec![path.join(PathBuf::from("build"))];
-        Project::new(path, ProjectType::Gradle, rm_dirs)
+        let rm_paths = vec![path.join(PathBuf::from("build"))];
+        Project::new(path, ProjectType::Gradle, rm_paths)
     }
 
-    pub fn misc(path: PathBuf, rm_dirs: Vec<PathBuf>) -> Project {
-        Project::new(path, ProjectType::Misc, rm_dirs)
+    pub fn misc(path: PathBuf, rm_paths: Vec<PathBuf>) -> Project {
+        Project::new(path, ProjectType::Misc, rm_paths)
     }
 
     pub fn mix(path: PathBuf) -> Project {
-        let rm_dirs = vec![
+        let rm_paths = vec![
             path.join(PathBuf::from("_build")),
             path.join(PathBuf::from("deps")),
         ];
-        Project::new(path, ProjectType::Mix, rm_dirs)
+        Project::new(path, ProjectType::Mix, rm_paths)
     }
 
     pub fn node(path: PathBuf) -> Project {
-        let rm_dirs = vec![path.join(PathBuf::from("node_modules"))];
-        Project::new(path, ProjectType::Node, rm_dirs)
+        let rm_paths = vec![path.join(PathBuf::from("node_modules"))];
+        Project::new(path, ProjectType::Node, rm_paths)
     }
 
     pub fn delete(&mut self) -> Option<String> {
         let mut message = String::from("");
-        for dir in &self.rm_dirs {
-            match remove_dir_all(dir) {
-                Ok(_) => message += format!("Removed {:?}\n", dir).as_str(),
-                Err(e) => message += format!("Unable to remove {:?}: {}\n", dir, e).as_str(),
+        for path in &self.rm_paths {
+            let res = if path.is_dir() {
+                remove_dir_all(path)
+            } else {
+                remove_file(path)
+            };
+            match res {
+                Ok(_) => message += format!("Removed {:?}\n", path).as_str(),
+                Err(e) => message += format!("Unable to remove {:?}: {}\n", path, e).as_str(),
             }
         }
-        self.rm_size = get_rm_size(&self.rm_dirs);
+        self.rm_size = get_rm_size(&self.rm_paths);
         self.rm_size_str = bytes_to_string(self.rm_size);
         self.last_modified = get_time_since_last_mod(&self.path);
 
@@ -95,6 +116,7 @@ pub enum ProjectType {
     Cargo,
     Composer,
     Dotnet,
+    Golang,
     Gradle,
     Misc,
     Mix,

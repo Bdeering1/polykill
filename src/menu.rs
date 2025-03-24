@@ -42,7 +42,7 @@ pub fn project_menu(projects: Vec<Project>, verbose: bool) {
 
 fn create_label(project: &Project, max_path_len: usize) -> String {
     let project_type = if let ProjectType::Misc = project.project_type {
-        format!("Misc ({})", project.rm_dirs[0].file_name().unwrap().to_str().unwrap())
+        format!("Misc ({})", project.rm_paths[0].file_name().unwrap().to_str().unwrap())
     } else {
         project.project_type.to_string()
     };
@@ -53,13 +53,14 @@ fn create_label(project: &Project, max_path_len: usize) -> String {
     };
 
     let type_color = match project.project_type {
-        ProjectType::Cargo => 214,
-        ProjectType::Composer => 117,
+        ProjectType::Cargo => 221,
+        ProjectType::Composer => 208,
         ProjectType::Dotnet => 171,
+        ProjectType::Golang => 81,
         ProjectType::Gradle => 42,
         ProjectType::Misc => 147,
         ProjectType::Mix => 98,
-        ProjectType::Node => 28,
+        ProjectType::Node => 34,
     };
     let last_mod_color = match project.last_modified {
         Some(days) if days > 180 => 1,
