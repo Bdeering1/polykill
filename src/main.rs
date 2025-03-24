@@ -77,7 +77,7 @@ fn main() {
         projects.retain(|p| p.rm_size > 0);
     }
     if projects.is_empty() {
-        println!("{} No projects found.", menu::ansi_clear_screen());
+        println!("{} No projects found.", menu::ANSI_CLEAR_SCREEN);
         return;
     }
 

@@ -29,22 +29,14 @@ impl Project {
         }
     }
 
-    pub fn node(path: PathBuf) -> Project {
-        let rm_dirs = vec![path.join(PathBuf::from("node_modules"))];
-        Project::new(path, ProjectType::Node, rm_dirs)
-    }
-
     pub fn cargo(path: PathBuf) -> Project {
         let rm_dirs = vec![path.join(PathBuf::from("target"))];
         Project::new(path, ProjectType::Cargo, rm_dirs)
     }
 
-    pub fn mix(path: PathBuf) -> Project {
-        let rm_dirs = vec![
-            path.join(PathBuf::from("_build")),
-            path.join(PathBuf::from("deps")),
-        ];
-        Project::new(path, ProjectType::Mix, rm_dirs)
+    pub fn composer(path: PathBuf) -> Project {
+        let rm_dirs = vec![path.join(PathBuf::from("vendor"))];
+        Project::new(path, ProjectType::Composer, rm_dirs)
     }
 
     pub fn dotnet(path: PathBuf) -> Project {
@@ -60,13 +52,21 @@ impl Project {
         Project::new(path, ProjectType::Gradle, rm_dirs)
     }
 
-    pub fn composer(path: PathBuf) -> Project {
-        let rm_dirs = vec![path.join(PathBuf::from("vendor"))];
-        Project::new(path, ProjectType::Composer, rm_dirs)
-    }
-
     pub fn misc(path: PathBuf, rm_dirs: Vec<PathBuf>) -> Project {
         Project::new(path, ProjectType::Misc, rm_dirs)
+    }
+
+    pub fn mix(path: PathBuf) -> Project {
+        let rm_dirs = vec![
+            path.join(PathBuf::from("_build")),
+            path.join(PathBuf::from("deps")),
+        ];
+        Project::new(path, ProjectType::Mix, rm_dirs)
+    }
+
+    pub fn node(path: PathBuf) -> Project {
+        let rm_dirs = vec![path.join(PathBuf::from("node_modules"))];
+        Project::new(path, ProjectType::Node, rm_dirs)
     }
 
     pub fn delete(&mut self) -> Option<String> {

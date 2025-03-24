@@ -2,6 +2,8 @@ use console::{Key, Term};
 
 use crate::project::{Project, ProjectType};
 
+pub const ANSI_CLEAR_SCREEN: &str = "\x1b[H\x1b[J\x1b[H";
+
 const MIN_PATH_PADDING: usize = 10;
 const PROJECT_TYPE_PADDING: usize = 12;
 const LAST_MOD_PADDING: usize = 10;
@@ -52,12 +54,12 @@ fn create_label(project: &Project, max_path_len: usize) -> String {
 
     let type_color = match project.project_type {
         ProjectType::Cargo => 214,
-        ProjectType::Node => 28,
-        ProjectType::Dotnet => 171,
-        ProjectType::Mix => 98,
-        ProjectType::Gradle => 42,
         ProjectType::Composer => 117,
+        ProjectType::Dotnet => 171,
+        ProjectType::Gradle => 42,
         ProjectType::Misc => 147,
+        ProjectType::Mix => 98,
+        ProjectType::Node => 28,
     };
     let last_mod_color = match project.last_modified {
         Some(days) if days > 180 => 1,
@@ -78,10 +80,6 @@ fn create_label(project: &Project, max_path_len: usize) -> String {
         apply_color256(&pad_left(&last_modified, LAST_MOD_PADDING), last_mod_color),
         apply_color256(&pad_left(&project.rm_size_str, SIZE_PADDING), rm_size_color),
     )
-}
-
-pub fn ansi_clear_screen() -> String {
-    String::from("\x1b[H\x1b[J\x1b[H")
 }
 
 fn pad_left(s: &str, width: usize) -> String {
@@ -238,7 +236,7 @@ impl Menu {
     }
 
     fn draw(&self, stdout: &Term) {
-        stdout.write_line(&ansi_clear_screen()).unwrap();
+        stdout.write_line(ANSI_CLEAR_SCREEN).unwrap();
 
         if let Some(title) = &self.title {
             let controls_str = "  ↓,↑,←,→: select project |  enter: delete artifacts |  q: quit\n";
@@ -263,7 +261,7 @@ impl Menu {
     }
 
     fn exit(&self, stdout: &Term) {
-        stdout.write_line(&ansi_clear_screen()).unwrap();
+        stdout.write_line(ANSI_CLEAR_SCREEN).unwrap();
         stdout.show_cursor().unwrap();
         stdout.flush().unwrap();
     }
