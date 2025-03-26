@@ -1,13 +1,16 @@
 # Polykill
 
+*Like [polyfill](https://developer.mozilla.org/en-US/docs/Glossary/Polyfill) - but more violent*
+
 Lightweight utility for removing unwanted dependencies and build artifacts from local projects. Inspired by [npkill](https://www.npmjs.com/package/npkill).
 
 Supported project types:
-- Cargo
 - Node
-- Mix
-- .NET Core
+- Cargo
+- .NET
+- Go
 - Gradle
+- Mix
 - Composer
 - Misc. (see "Addional Information")
 
@@ -33,8 +36,6 @@ When the search has completed, navigate the menu using the following controls:
 | enter, del | remove artifacts |
 | esc, q     | exit             |
 
-Removing artifacts involves removing the build/dependency directories associated with a project type.
-
 **Warning for Node projects:** Some Node applications need their node_modules directory to work and deleting it may break them.
 
 ## Options
@@ -52,14 +53,17 @@ Removing artifacts involves removing the build/dependency directories associated
 
 ## Additional Information
 
-How projects are identified and which directories are used for dependencies and build artifacts:
+How projects are identified and which files or directories will be removed:
 
-| Type      | Identifier(s)      | Directories      |
+| Type      | Identifier(s)      | Artifacts        |
 | --------- | ------------------ | ---------------- |
 | Node      | package.json       | node_modules     |
 | Cargo     | cargo.toml         | target           |
-| Mix       | mix.exs            | _build, deps     |
-| .NET Core | .csproj            | bin, obj         |
+| .NET      | .csproj            | bin, obj         |
+| Go        | go.mod             | dir(.exe), dir.test(.exe) |
 | Gradle    | build.gradle(.kts) | build            |
+| Mix       | mix.exs            | _build, deps     |
 | Composer  | composer.json      | vendor           |
 | Misc.     | bin, build, dist   | bin, build, dist |
+
+*dir for go projects is the name of the project directory
