@@ -12,7 +12,7 @@ Supported project types:
 - Gradle
 - Mix
 - Composer
-- Misc. (see "Addional Information")
+- Misc. (see "Additional Information")
 
 ## Installation
 
