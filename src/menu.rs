@@ -5,48 +5,58 @@ use crate::project::{Project, ProjectType};
 
 pub const ANSI_CLEAR_SCREEN: &str = "\x1b[H\x1b[J\x1b[H";
 
-const MIN_PATH_PADDING: usize = 10;
-const PROJECT_TYPE_PADDING: usize = 12;
-const LAST_MOD_PADDING: usize = 10;
-const SIZE_PADDING: usize = 16;
+const PATH_PAD: usize = 10;
+const PATH_PAD_SM: usize = 2;
+const PROJECT_TYPE_PAD: usize = 4;
+const PROJECT_TYPE_PAD_SM: usize = 2;
+const LAST_MOD_WIDTH: usize = 10;
+const SIZE_WIDTH: usize = 15;
 
 pub fn project_menu(projects: Vec<Project>, verbose: bool) {
-    let max_path_len = (&projects).iter().fold(0, |max, project| {
-        let path_len = project.path.to_str().unwrap().to_string().len();
-        if path_len > max { path_len } else { max }
-    });
+    let [mut max_path_width, mut max_project_type_width] = [0; 2];
+    for p in &projects {
+        let path_len = p.path.to_str().unwrap().to_string().len();
+        if path_len > max_path_width { max_path_width = path_len }
+        let p_type_len = p.to_string().len();
+        if p_type_len > max_project_type_width { max_project_type_width = p_type_len }
+    }
+
+    let screen_width = Term::stdout().size().1;
+    let mut path_width = max_path_width + PATH_PAD;
+    let mut p_type_width = max_project_type_width + PROJECT_TYPE_PAD;
+    let max_row_width = path_width + p_type_width + LAST_MOD_WIDTH + SIZE_WIDTH;
+
+    if max_row_width > screen_width as usize {
+        path_width = max_path_width + PATH_PAD_SM;
+        p_type_width = max_project_type_width + PROJECT_TYPE_PAD_SM;
+    }
 
     let menu_title = format!(
         "  {}{}{}{}\n  {}{}{}{}",
-        format_args!("{:<width$}", "Path", width=(max_path_len + MIN_PATH_PADDING)),
-        format_args!("{:<width$}", "Type", width=PROJECT_TYPE_PADDING),
-        format_args!("{:>width$}", "Last Mod.", width=LAST_MOD_PADDING),
-        format_args!("{:>width$}", "Disk Savings", width=SIZE_PADDING),
-        format_args!("{:<width$}", "----", width=(max_path_len + MIN_PATH_PADDING)),
-        format_args!("{:<width$}", "----", width=PROJECT_TYPE_PADDING),
-        format_args!("{:>width$}", "----", width=LAST_MOD_PADDING),
-        format_args!("{:>width$}", "----", width=SIZE_PADDING),
+        format_args!("{:<width$}", "Path", width=path_width),
+        format_args!("{:<width$}", "Type", width=p_type_width),
+        format_args!("{:>width$}", "Last Mod.", width=LAST_MOD_WIDTH),
+        format_args!("{:>width$}", "Disk Savings", width=SIZE_WIDTH),
+        format_args!("{:<width$}", "----", width=path_width),
+        format_args!("{:<width$}", "----", width=p_type_width),
+        format_args!("{:>width$}", "----", width=LAST_MOD_WIDTH),
+        format_args!("{:>width$}", "----", width=SIZE_WIDTH),
     );
 
     let mut menu_items: Vec<MenuItem> = vec![];
     for project in projects {
-        let label = create_label(&project, max_path_len);
+        let label = create_label(&project, path_width, p_type_width);
         let action = MenuAction::Delete(project);
         let menu_item = MenuItem::new(&label, action);
         menu_items.push(menu_item);
     }
 
-    let mut menu = Menu::new(menu_items, max_path_len, verbose);
+    let mut menu = Menu::new(menu_items, path_width, p_type_width, verbose);
     menu.title(&menu_title);
     menu.show();
 }
 
-fn create_label(project: &Project, max_path_len: usize) -> String {
-    let project_type = if let ProjectType::Misc = project.project_type {
-        format!("Misc ({})", project.rm_paths[0].file_name().unwrap().to_str().unwrap())
-    } else {
-        project.project_type.to_string()
-    };
+fn create_label(project: &Project, path_width: usize, p_type_width: usize) -> String {
     let last_modified = if let Some(days) = project.last_modified {
         format!("{} days", days)
     } else {
@@ -77,10 +87,10 @@ fn create_label(project: &Project, max_path_len: usize) -> String {
 
     format!(
         "{}{}{}{}",
-        pad_right(&project.path.display().to_string(), max_path_len + MIN_PATH_PADDING),
-        apply_color256(&pad_right(&project_type, PROJECT_TYPE_PADDING), type_color),
-        apply_color256(&pad_left(&last_modified, LAST_MOD_PADDING), last_mod_color),
-        apply_color256(&pad_left(&project.rm_size_str, SIZE_PADDING), rm_size_color),
+        pad_right(&project.path.display().to_string(), path_width),
+        apply_color256(&pad_right(&project.to_string(), p_type_width), type_color),
+        apply_color256(&pad_left(&last_modified, LAST_MOD_WIDTH), last_mod_color),
+        apply_color256(&pad_left(&project.rm_size_str, SIZE_WIDTH), rm_size_color),
     )
 }
 
@@ -129,11 +139,12 @@ pub struct Menu {
     page_end: usize,
     verbose: bool,
     message: Option<String>,
-    max_path_len: usize,
+    path_width: usize,
+    p_type_width: usize,
 }
 
 impl Menu {
-    pub fn new(items: Vec<MenuItem>, max_path_len: usize, verbose: bool) -> Self {
+    pub fn new(items: Vec<MenuItem>, path_width: usize, p_type_width: usize, verbose: bool) -> Self {
         let mut items_per_page: i32 =
             if verbose {
                 Term::stdout().size().0 as i32 - 9
@@ -155,7 +166,8 @@ impl Menu {
             page_end: 0,
             verbose,
             message: None,
-            max_path_len,
+            path_width,
+            p_type_width,
         };
         menu.set_page(0);
         menu
@@ -233,7 +245,7 @@ impl Menu {
     fn set_working(&mut self, stdout: &mut Term) {
         let MenuAction::Delete(project) = &mut self.items[self.selected_item].action;
         project.rm_size_str = String::from("working...");
-        self.items[self.selected_item].label = create_label(project, self.max_path_len);
+        self.items[self.selected_item].label = create_label(project, self.path_width, self.p_type_width);
         self.draw(stdout);
     }
 
@@ -274,7 +286,7 @@ impl Menu {
             MenuAction::Delete(project) => {
                 let message = project.delete();
                 if self.verbose { self.message = message; }
-                self.items[action_idx].label = create_label(project, self.max_path_len);
+                self.items[action_idx].label = create_label(project, self.path_width, self.p_type_width);
             }
         }
     }

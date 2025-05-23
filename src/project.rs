@@ -14,6 +14,15 @@ pub struct Project {
     pub last_modified: Option<u64>,
 }
 
+impl Display for Project {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        if self.project_type == ProjectType::Misc {
+            return write!(f, "Misc ({})", self.get_rm_path_str())
+        }
+        write!(f, "{:?}", self.project_type)
+    }
+}
+
 impl Project {
     pub fn new(path: PathBuf, project_type: ProjectType, rm_paths: Vec<PathBuf>) -> Project {
         let rm_size = get_rm_size(&rm_paths);
@@ -99,7 +108,6 @@ impl Project {
                 Err(e) => message += format!("Unable to remove {:?}: {}\n", path, e).as_str(),
             }
         }
-        self.rm_size = get_rm_size(&self.rm_paths);
         self.rm_size_str = bytes_to_string(self.rm_size);
         self.last_modified = get_time_since_last_mod(&self.path);
 
@@ -109,6 +117,10 @@ impl Project {
         } else {
             Some(message)
         }
+    }
+
+    fn get_rm_path_str(&self) -> &str {
+        self.rm_paths[0].file_name().unwrap().to_str().unwrap()
     }
 }
 
