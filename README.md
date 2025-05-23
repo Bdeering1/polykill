@@ -1,8 +1,12 @@
 # Polykill
 
+[![Crates.io](https://img.shields.io/crates/v/polykill?style=flat-square&color=peru)](https://crates.io/crates/polykill)
+[![Crates.io (Downloads)](https://img.shields.io/crates/d/polykill?style=flat-square&color=mediumseagreen)](https://crates.io/crates/polykill)
+[![Crates.io Size](https://img.shields.io/crates/size/polykill?style=flat-square&color=steelblue)](https://crates.io/crates/polykill)
+
 *Like [polyfill](https://developer.mozilla.org/en-US/docs/Glossary/Polyfill) - but more violent*
 
-Lightweight utility for removing unwanted dependencies and build artifacts from local projects. Inspired by [npkill](https://www.npmjs.com/package/npkill).
+Lightweight command line utility for removing unwanted dependencies and build artifacts from local projects. Inspired by [npkill](https://www.npmjs.com/package/npkill).
 
 Supported project types:
 - Node
