@@ -1,3 +1,4 @@
+use std::io::Write;
 use console::{Key, Term};
 
 use crate::project::{Project, ProjectType};
@@ -165,15 +166,15 @@ impl Menu {
     }
 
     pub fn show(&mut self) {
-        let stdout = Term::buffered_stdout();
+        let mut stdout = Term::buffered_stdout();
 
         stdout.hide_cursor().unwrap();
 
-        self.draw(&stdout);
-        self.run_navigation(&stdout);
+        self.draw(&mut stdout);
+        self.run_navigation(&mut stdout);
     }
 
-    fn run_navigation(&mut self, stdout: &Term) {
+    fn run_navigation(&mut self, stdout: &mut Term) {
         loop {
             let key = stdout.read_key().unwrap();
 
@@ -229,15 +230,15 @@ impl Menu {
         }
     }
 
-    fn set_working(&mut self, stdout: &Term) {
+    fn set_working(&mut self, stdout: &mut Term) {
         let MenuAction::Delete(project) = &mut self.items[self.selected_item].action;
         project.rm_size_str = String::from("working...");
         self.items[self.selected_item].label = create_label(project, self.max_path_len);
         self.draw(stdout);
     }
 
-    fn draw(&self, stdout: &Term) {
-        stdout.write_line(ANSI_CLEAR_SCREEN).unwrap();
+    fn draw(&self, stdout: &mut Term) {
+        stdout.write(ANSI_CLEAR_SCREEN.as_bytes()).unwrap();
 
         if let Some(title) = &self.title {
             let controls_str = "  ↓,↑,←,→: select project |  enter: delete artifacts |  q: quit\n";
@@ -261,8 +262,8 @@ impl Menu {
         stdout.flush().unwrap();
     }
 
-    fn exit(&self, stdout: &Term) {
-        stdout.write_line(ANSI_CLEAR_SCREEN).unwrap();
+    fn exit(&self, stdout: &mut Term) {
+        stdout.write(ANSI_CLEAR_SCREEN.as_bytes()).unwrap();
         stdout.show_cursor().unwrap();
         stdout.flush().unwrap();
     }

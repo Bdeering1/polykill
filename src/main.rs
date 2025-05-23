@@ -6,6 +6,9 @@ mod menu;
 mod project;
 mod search;
 
+const ANSI_HIDE_CURSOR: &str = "\x1b[?25l";
+const ANSI_SHOW_CURSOR: &str = "\x1b[?25h";
+
 #[derive(Debug, Parser)]
 #[clap(author, version, verbatim_doc_comment)]
 /// Remove unwanted dependencies and build artifacts from local projects
@@ -51,9 +54,9 @@ fn main() {
 
     if !args.dry_run {
         let term_height = Term::stdout().size().0 as usize;
-        let top_pad = "\n".repeat(term_height / 2 - 4);
-        let bottom_pad = "\n".repeat(term_height / 2 - 5);
-        println!("{}
+        let top_pad = "\n".repeat(term_height / 2 - 6);
+        let bottom_pad = "\n".repeat(term_height / 2 - 3);
+        print!("{}{}
         ██████   ██████  ██   ██    ██ ██   ██ ██ ██      ██
         ██   ██ ██    ██ ██    ██  ██  ██  ██  ██ ██      ██ 
         ██████  ██    ██ ██     ████   █████   ██ ██      ██        
@@ -62,7 +65,7 @@ fn main() {
         v{}
         
         searching for projects...{}",
-        top_pad, env!("CARGO_PKG_VERSION"), bottom_pad
+        ANSI_HIDE_CURSOR, top_pad, env!("CARGO_PKG_VERSION"), bottom_pad
         );
     }
 
@@ -77,7 +80,7 @@ fn main() {
         projects.retain(|p| p.rm_size > 0);
     }
     if projects.is_empty() {
-        println!("{} No projects found.", menu::ANSI_CLEAR_SCREEN);
+        println!("{}{}No projects found.", menu::ANSI_CLEAR_SCREEN, ANSI_SHOW_CURSOR);
         return;
     }
 
@@ -86,7 +89,5 @@ fn main() {
         projects.sort_by_key(|p| p.project_type);
     }
     
-    if !args.dry_run {
-        menu::project_menu(projects, args.verbose);
-    }
+    if !args.dry_run { menu::project_menu(projects, args.verbose); }
 }
