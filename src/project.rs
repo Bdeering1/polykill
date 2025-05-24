@@ -1,3 +1,4 @@
+use std::ffi::OsStr;
 use std::fmt::{Display, Formatter};
 use std::fs::{metadata, read_dir, remove_dir_all, remove_file, ReadDir};
 use std::io;
@@ -12,15 +13,6 @@ pub struct Project {
     pub rm_size: u64,
     pub rm_size_str: String,
     pub last_modified: Option<u64>,
-}
-
-impl Display for Project {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        if self.project_type == ProjectType::Misc {
-            return write!(f, "Misc ({})", self.get_rm_path_str())
-        }
-        write!(f, "{:?}", self.project_type)
-    }
 }
 
 impl Project {
@@ -119,6 +111,24 @@ impl Project {
         }
     }
 
+    pub fn path_string(&self) -> String {
+        self.path.display().to_string()
+    }
+
+    pub fn trunc_path_string(&self, truncate_to: usize) -> String {
+        let (path, truncated) = truncate_path(&self.path, truncate_to);
+        if truncated { return format!("../{}", path.display()) }
+
+        path.display().to_string()
+    }
+
+    pub fn type_string(&self) -> String {
+        if self.project_type == ProjectType::Misc {
+            return format!("Misc ({})", self.get_rm_path_str())
+        }
+        format!("{:?}", self.project_type)
+    }
+
     fn get_rm_path_str(&self) -> &str {
         self.rm_paths[0].file_name().unwrap().to_str().unwrap()
     }
@@ -140,6 +150,13 @@ impl Display for ProjectType {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
     }
+}
+
+fn truncate_path(path: &PathBuf, n: usize) -> (PathBuf, bool) {
+    let components: Vec<&OsStr> = path.iter().collect();
+    if n >= components.len() { return (path.to_owned(), false) }
+
+    (components.iter().skip(components.len() - n).collect(), true)
 }
 
 fn get_time_since_last_mod(path: &PathBuf) -> Option<u64> {

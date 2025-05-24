@@ -5,6 +5,7 @@ use crate::project::{Project, ProjectType};
 
 pub const ANSI_CLEAR_SCREEN: &str = "\x1b[H\x1b[J\x1b[H";
 
+const MIN_PATH_COMPONENTS: usize = 2;
 const PATH_PAD: usize = 10;
 const PATH_PAD_SM: usize = 2;
 const PROJECT_TYPE_PAD: usize = 4;
@@ -17,18 +18,29 @@ pub fn project_menu(projects: Vec<Project>, verbose: bool) {
     for p in &projects {
         let path_len = p.path.to_str().unwrap().to_string().len();
         if path_len > max_path_width { max_path_width = path_len }
-        let p_type_len = p.to_string().len();
+        let p_type_len = p.type_string().len();
         if p_type_len > max_project_type_width { max_project_type_width = p_type_len }
     }
 
     let screen_width = Term::stdout().size().1;
     let mut path_width = max_path_width + PATH_PAD;
     let mut p_type_width = max_project_type_width + PROJECT_TYPE_PAD;
-    let max_row_width = path_width + p_type_width + LAST_MOD_WIDTH + SIZE_WIDTH;
+    let row_width = path_width + p_type_width + LAST_MOD_WIDTH + SIZE_WIDTH;
 
-    if max_row_width > screen_width as usize {
+    if row_width > screen_width as usize {
         path_width = max_path_width + PATH_PAD_SM;
         p_type_width = max_project_type_width + PROJECT_TYPE_PAD_SM;
+    }
+
+    let mut truncate_paths = false;
+    let row_width = path_width + p_type_width + LAST_MOD_WIDTH + SIZE_WIDTH;
+    if row_width > screen_width as usize {
+        truncate_paths = true;
+        max_path_width = (&projects).iter().fold(0, |max, project| {
+            let path_len = project.trunc_path_string(MIN_PATH_COMPONENTS).len();
+            if path_len > max { path_len } else { max }
+        });
+        path_width = max_path_width + PATH_PAD_SM;
     }
 
     let menu_title = format!(
@@ -45,18 +57,24 @@ pub fn project_menu(projects: Vec<Project>, verbose: bool) {
 
     let mut menu_items: Vec<MenuItem> = vec![];
     for project in projects {
-        let label = create_label(&project, path_width, p_type_width);
+        let label = create_label(&project, path_width, p_type_width, truncate_paths);
         let action = MenuAction::Delete(project);
         let menu_item = MenuItem::new(&label, action);
         menu_items.push(menu_item);
     }
 
-    let mut menu = Menu::new(menu_items, path_width, p_type_width, verbose);
+    let mut menu = Menu::new(menu_items, path_width, p_type_width, truncate_paths, verbose);
     menu.title(&menu_title);
     menu.show();
 }
 
-fn create_label(project: &Project, path_width: usize, p_type_width: usize) -> String {
+fn create_label(project: &Project, path_width: usize, p_type_width: usize, truncate_paths: bool) -> String {
+    let path = if truncate_paths {
+        project.trunc_path_string(MIN_PATH_COMPONENTS)
+    } else {
+        project.path_string()
+    };
+
     let last_modified = if let Some(days) = project.last_modified {
         format!("{} days", days)
     } else {
@@ -87,8 +105,8 @@ fn create_label(project: &Project, path_width: usize, p_type_width: usize) -> St
 
     format!(
         "{}{}{}{}",
-        pad_right(&project.path.display().to_string(), path_width),
-        apply_color256(&pad_right(&project.to_string(), p_type_width), type_color),
+        pad_right(&path, path_width),
+        apply_color256(&pad_right(&project.type_string(), p_type_width), type_color),
         apply_color256(&pad_left(&last_modified, LAST_MOD_WIDTH), last_mod_color),
         apply_color256(&pad_left(&project.rm_size_str, SIZE_WIDTH), rm_size_color),
     )
@@ -141,16 +159,21 @@ pub struct Menu {
     message: Option<String>,
     path_width: usize,
     p_type_width: usize,
+    truncate_paths: bool
 }
 
 impl Menu {
-    pub fn new(items: Vec<MenuItem>, path_width: usize, p_type_width: usize, verbose: bool) -> Self {
-        let mut items_per_page: i32 =
-            if verbose {
-                Term::stdout().size().0 as i32 - 9
-            } else {
-                Term::stdout().size().0 as i32 - 6
-            };
+    pub fn new(items: Vec<MenuItem>,
+               path_width: usize,
+               p_type_width: usize,
+               truncate_paths: bool,
+               verbose: bool) -> Self {
+
+        let mut items_per_page = if verbose {
+            Term::stdout().size().0 as i32 - 9
+        } else {
+            Term::stdout().size().0 as i32 - 6
+        };
         if items_per_page < 1 { items_per_page = 1 }
         let items_per_page = items_per_page as usize;
         let num_pages = ((items.len() - 1) / items_per_page) + 1;
@@ -168,6 +191,7 @@ impl Menu {
             message: None,
             path_width,
             p_type_width,
+            truncate_paths
         };
         menu.set_page(0);
         menu
@@ -245,7 +269,7 @@ impl Menu {
     fn set_working(&mut self, stdout: &mut Term) {
         let MenuAction::Delete(project) = &mut self.items[self.selected_item].action;
         project.rm_size_str = String::from("working...");
-        self.items[self.selected_item].label = create_label(project, self.path_width, self.p_type_width);
+        self.items[self.selected_item].label = create_label(project, self.path_width, self.p_type_width, self.truncate_paths);
         self.draw(stdout);
     }
 
@@ -286,7 +310,7 @@ impl Menu {
             MenuAction::Delete(project) => {
                 let message = project.delete();
                 if self.verbose { self.message = message; }
-                self.items[action_idx].label = create_label(project, self.path_width, self.p_type_width);
+                self.items[action_idx].label = create_label(project, self.path_width, self.p_type_width, self.truncate_paths);
             }
         }
     }
