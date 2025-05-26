@@ -5,42 +5,42 @@ use crate::project::{Project, ProjectType};
 
 pub const ANSI_CLEAR_SCREEN: &str = "\x1b[H\x1b[J\x1b[H";
 
-const MIN_PATH_COMPONENTS: usize = 2;
-const PATH_PAD: usize = 10;
-const PATH_PAD_SM: usize = 2;
-const PROJECT_TYPE_PAD: usize = 4;
-const PROJECT_TYPE_PAD_SM: usize = 2;
-const LAST_MOD_WIDTH: usize = 10;
-const SIZE_WIDTH: usize = 15;
+const MIN_PATH_COMPONENTS: usize =  3;
+const PATH_PAD:            usize = 10;
+const PATH_PAD_SM:         usize =  2;
+const PROJECT_TYPE_PAD:    usize =  3;
+const PROJECT_TYPE_PAD_SM: usize =  2;
+const LAST_MOD_WIDTH:      usize = 10;
+const RM_SIZE_WIDTH:       usize = 15;
+
+const SMALL_WIN_DIFF: usize = PATH_PAD - PATH_PAD_SM
+                            + PROJECT_TYPE_PAD - PROJECT_TYPE_PAD_SM;
 
 pub fn project_menu(projects: Vec<Project>, verbose: bool) {
     let [mut max_path_width, mut max_project_type_width] = [0; 2];
     for p in &projects {
-        let path_len = p.path.to_str().unwrap().to_string().len();
+        let path_len = p.path_string().len();
         if path_len > max_path_width { max_path_width = path_len }
         let p_type_len = p.type_string().len();
         if p_type_len > max_project_type_width { max_project_type_width = p_type_len }
     }
 
-    let screen_width = Term::stdout().size().1;
+    let mut truncate_paths = false;
     let mut path_width = max_path_width + PATH_PAD;
     let mut p_type_width = max_project_type_width + PROJECT_TYPE_PAD;
-    let row_width = path_width + p_type_width + LAST_MOD_WIDTH + SIZE_WIDTH;
+    let row_width = path_width + p_type_width + LAST_MOD_WIDTH + RM_SIZE_WIDTH + 2;
 
-    if row_width > screen_width as usize {
+    let screen_width = Term::stdout().size().1 as usize;
+    if row_width > screen_width {
+        if row_width - SMALL_WIN_DIFF > screen_width {
+            truncate_paths = true;
+            max_path_width = (&projects).iter().fold(0, |max, project| {
+                let path_len = project.trunc_path_string(MIN_PATH_COMPONENTS).len();
+                if path_len > max { path_len } else { max }
+            });
+        }
         path_width = max_path_width + PATH_PAD_SM;
         p_type_width = max_project_type_width + PROJECT_TYPE_PAD_SM;
-    }
-
-    let mut truncate_paths = false;
-    let row_width = path_width + p_type_width + LAST_MOD_WIDTH + SIZE_WIDTH;
-    if row_width > screen_width as usize {
-        truncate_paths = true;
-        max_path_width = (&projects).iter().fold(0, |max, project| {
-            let path_len = project.trunc_path_string(MIN_PATH_COMPONENTS).len();
-            if path_len > max { path_len } else { max }
-        });
-        path_width = max_path_width + PATH_PAD_SM;
     }
 
     let menu_title = format!(
@@ -48,11 +48,11 @@ pub fn project_menu(projects: Vec<Project>, verbose: bool) {
         format_args!("{:<width$}", "Path", width=path_width),
         format_args!("{:<width$}", "Type", width=p_type_width),
         format_args!("{:>width$}", "Last Mod.", width=LAST_MOD_WIDTH),
-        format_args!("{:>width$}", "Disk Savings", width=SIZE_WIDTH),
+        format_args!("{:>width$}", "Disk Savings", width=RM_SIZE_WIDTH),
         format_args!("{:<width$}", "----", width=path_width),
         format_args!("{:<width$}", "----", width=p_type_width),
         format_args!("{:>width$}", "----", width=LAST_MOD_WIDTH),
-        format_args!("{:>width$}", "----", width=SIZE_WIDTH),
+        format_args!("{:>width$}", "----", width=RM_SIZE_WIDTH),
     );
 
     let mut menu_items: Vec<MenuItem> = vec![];
@@ -69,7 +69,7 @@ pub fn project_menu(projects: Vec<Project>, verbose: bool) {
 }
 
 fn create_label(project: &Project, path_width: usize, p_type_width: usize, truncate_paths: bool) -> String {
-    let path = if truncate_paths {
+    let disp_path = if truncate_paths {
         project.trunc_path_string(MIN_PATH_COMPONENTS)
     } else {
         project.path_string()
@@ -105,10 +105,10 @@ fn create_label(project: &Project, path_width: usize, p_type_width: usize, trunc
 
     format!(
         "{}{}{}{}",
-        pad_right(&path, path_width),
+        pad_right(&disp_path, path_width),
         apply_color256(&pad_right(&project.type_string(), p_type_width), type_color),
         apply_color256(&pad_left(&last_modified, LAST_MOD_WIDTH), last_mod_color),
-        apply_color256(&pad_left(&project.rm_size_str, SIZE_WIDTH), rm_size_color),
+        apply_color256(&pad_left(&project.rm_size_str, RM_SIZE_WIDTH), rm_size_color),
     )
 }
 
