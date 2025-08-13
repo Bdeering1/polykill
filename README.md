@@ -20,8 +20,15 @@ Supported project types:
 
 ## Installation
 
+**Cargo**
 ```sh
 cargo install polykill
+```
+
+**Homebrew**
+```sh
+brew tap bdeering1/polykill
+brew install polykill
 ```
 
 ## Usage
