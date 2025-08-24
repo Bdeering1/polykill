@@ -1,0 +1,31 @@
+name: Nix Build
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  nix-build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Check flake
+        run: nix flake check
+
+      - name: Build with Nix
+        run: nix build .#polykill
+
+      - name: Test Nix build
+        run: ./result/bin/polykill --help
