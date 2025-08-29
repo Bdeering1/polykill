@@ -1,1 +1,4 @@
 /target
+
+# ignore nix build `result` symlink
+result
