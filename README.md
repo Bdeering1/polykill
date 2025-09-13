@@ -31,7 +31,7 @@ brew tap bdeering1/polykill
 brew install polykill
 ```
 
-**Nix flake**
+**Nix (Flake)**
 
 ```sh
 nix shell github:Bdeering1/polykill
