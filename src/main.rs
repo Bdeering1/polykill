@@ -21,6 +21,10 @@ pub struct PolykillArgs {
     #[arg(short, long)]
     pub verbose: bool,
 
+    /// Hide projects with zero possible disk savings
+    #[arg(short, long)]
+    pub skip_empty: bool,
+
     /// Include projects not tracked by supported version control systems
     #[arg(long)]
     pub no_vcs: bool,
@@ -29,9 +33,13 @@ pub struct PolykillArgs {
     #[arg(short, long)]
     pub unsorted: bool,
 
-    /// Hide projects with zero possible disk savings
+    /// Automatically delete artifacts from older projects
     #[arg(short, long)]
-    pub skip_empty: bool,
+    pub auto: bool,
+
+    /// Minimum threshold for artifact deletion (days since last modified)
+    #[arg(short, long, default_value_t = 60)]
+    pub threshold: u64,
 
     /// Don't bring up project menu (for testing purposes only)
     #[arg(long)]
@@ -52,7 +60,7 @@ fn main() {
         return;
     }
 
-    if !args.dry_run {
+    if !args.dry_run && !args.auto {
         let term_height = Term::stdout().size().0 as usize;
         let top_pad = "\n".repeat(term_height / 2 - 6);
         let bottom_pad = "\n".repeat(term_height / 2 - 3);
@@ -89,5 +97,19 @@ fn main() {
         projects.sort_by_key(|p| p.project_type);
     }
     
-    if !args.dry_run { menu::project_menu(projects, args.verbose); }
+    if args.dry_run { return; }
+
+    if args.auto {
+        for mut p in projects {
+            if p.last_modified == None || p.last_modified.unwrap() < args.threshold { continue; }
+
+            let message = p.delete();
+            if let Some(msg) = message {
+                println!("{}", msg);
+            }
+        }
+        return;
+    }
+
+    menu::project_menu(projects, args.verbose);
 }
