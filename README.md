@@ -34,11 +34,9 @@ brew install polykill
 **Nix flake**
 
 ```sh
-# Run directly
-nix run github:Bdeering1/polykill
-
-# Add to ephemeral shell
 nix shell github:Bdeering1/polykill
+# OR
+nix run github:Bdeering1/polykill
 ```
 
 ## Usage
