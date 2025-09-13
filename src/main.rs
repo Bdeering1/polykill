@@ -21,25 +21,25 @@ pub struct PolykillArgs {
     #[arg(short, long)]
     pub verbose: bool,
 
+    /// Automatically clean up older project artifacts (no menu)
+    #[arg(short, long)]
+    pub auto: bool,
+
+    /// Minimum threshold for artifact cleanup (days since last modified)
+    #[arg(short, long, default_value_t = 60)]
+    pub threshold: u64,
+
     /// Hide projects with zero possible disk savings
     #[arg(short, long)]
     pub skip_empty: bool,
-
-    /// Include projects not tracked by supported version control systems
-    #[arg(long)]
-    pub no_vcs: bool,
 
     /// Don't sort indexed projects
     #[arg(short, long)]
     pub unsorted: bool,
 
-    /// Automatically delete artifacts from older projects
-    #[arg(short, long)]
-    pub auto: bool,
-
-    /// Minimum threshold for artifact deletion (days since last modified)
-    #[arg(short, long, default_value_t = 60)]
-    pub threshold: u64,
+    /// Include projects not tracked by supported version control systems
+    #[arg(long)]
+    pub no_vcs: bool,
 
     /// Don't bring up project menu (for testing purposes only)
     #[arg(long)]
