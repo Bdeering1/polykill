@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use crate::project::Project;
+use crate::project::{self, Project};
 
 pub fn find_projects(path: &Path, max_depth: u32) -> Vec<Project> {
     if max_depth == 0 { return Vec::new(); }
@@ -17,7 +17,7 @@ pub fn find_projects(path: &Path, max_depth: u32) -> Vec<Project> {
 
         if let Some(project) = check_for_project(path.clone()) {
             projects.push(project);
-        } else {
+      } else {
             projects.append(&mut find_projects(&path, max_depth - 1));
         }
     }
@@ -49,65 +49,23 @@ pub fn find_git_projects(path: &Path) -> Vec<Project> {
 }
 
 fn check_for_project(path: PathBuf) -> Option<Project> {
-    if is_node(&path) {
-        Some(Project::node(path))
-    } else if is_cargo(&path) {
-        Some(Project::cargo(path))
-    } else if is_dotnet(&path) {
-        Some(Project::dotnet(path))
-    } else if is_golang(&path) {
-        Some(Project::golang(path))
-    } else if is_gradle(&path) {
-        Some(Project::gradle(path))
-    } else if is_composer(&path) {
-        Some(Project::composer(path))
-    } else if is_mix(&path) {
-        Some(Project::mix(path))
-    } else if let Some(rm_dir) = is_misc_project(&path) {
-        Some(Project::misc(path.to_owned(), vec![path.join(rm_dir)]))
-    } else {
-        None
-    }
-}
-
-fn is_node(path: &Path) -> bool {
-    contains_entry(path, "package.json") 
-}
-fn is_cargo(path: &Path) -> bool {
-    contains_entry(path, "Cargo.toml")
-}
-fn is_mix(path: &Path) -> bool {
-    contains_entry(path, "mix.exs")
-}
-fn is_dotnet(path: &Path) -> bool {
-    contains_file_regex(path, ".csproj")
-}
-fn is_golang(path: &Path) -> bool {
-    contains_entry(path, "go.mod")
-}
-fn is_gradle(path: &Path) -> bool {
-    contains_entry(path, "build.gradle") || contains_entry(path, "build.gradle.kts")
-}
-fn is_composer(path: &Path) -> bool {
-    contains_entry(path, "composer.json")
-}
-fn is_misc_project(path: &Path) -> Option<PathBuf> {
-    const MISC_DIRS: [&str; 3] = ["bin", "build", "dist"];
-
-    for dir in MISC_DIRS {
-        if contains_entry(path, dir) {
-            return Some(PathBuf::from(dir));
+    for (pt, idents) in project::PROJECT_IDENTIFIERS {
+        for ident in *idents {
+            if contains_entry(&path, ident) { // .csproj is special case (should use regex)
+                return Some(project::PROJECT_CONSTRUCTORS.get(pt).unwrap()(path));
+            }
         }
     }
     None
 }
+
 fn is_repo(path: &Path) -> bool {
     contains_entry(path, ".git")
     || contains_entry(path, ".svn")
     || contains_entry(path, ".hg")
 }
 
-fn contains_entry(path: &Path, entry: &str) -> bool {
+pub fn contains_entry(path: &Path, entry: &str) -> bool {
     let res = path.join(entry).try_exists();
     if let Ok(val) = res { val } else { false }
 }

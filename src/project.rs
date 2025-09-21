@@ -1,9 +1,41 @@
+use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::fmt::{Display, Formatter};
 use std::fs::{metadata, read_dir, remove_dir_all, remove_file, ReadDir};
 use std::io;
 use std::path::PathBuf;
+use std::sync::LazyLock;
 use std::time::{Duration, SystemTime};
+
+use crate::search;
+
+pub const PROJECT_IDENTIFIERS: &[(ProjectType, &[&str])] = &[
+    (ProjectType::Cargo,    &["Cargo.toml"]),
+    (ProjectType::Composer, &["composer.json"]),
+    (ProjectType::Dotnet,   &[".csproj"]),
+    (ProjectType::Golang,   &["go.mod"]),
+    (ProjectType::Gradle,   &["build.gradle",
+                              "build.gradle.kts"]),
+    (ProjectType::Misc,     &["bin",
+                              "build",
+                              "dist"]),
+    (ProjectType::Mix,      &["mix.exs"]),
+    (ProjectType::Node,     &["package.json"]),
+];
+
+pub const PROJECT_CONSTRUCTORS: LazyLock<HashMap<ProjectType, fn(PathBuf) -> Project>> = LazyLock::new(|| {
+    let artifacts = HashMap::from([
+        (ProjectType::Cargo,    Project::cargo as fn(PathBuf) -> Project),
+        (ProjectType::Composer, Project::composer),
+        (ProjectType::Dotnet,   Project::dotnet),
+        (ProjectType::Golang,   Project::golang),
+        (ProjectType::Gradle,   Project::gradle),
+        (ProjectType::Misc,     Project::misc),
+        (ProjectType::Mix,      Project::mix),
+        (ProjectType::Node,     Project::node),
+    ]);
+    artifacts
+});
 
 #[derive(Debug)]
 pub struct Project {
@@ -69,7 +101,15 @@ impl Project {
         Project::new(path, ProjectType::Gradle, rm_paths)
     }
 
-    pub fn misc(path: PathBuf, rm_paths: Vec<PathBuf>) -> Project {
+    pub fn misc(path: PathBuf) -> Project {
+        const MISC_DIRS: [&str; 3] = ["bin", "build", "dist"];
+        let mut rm_paths = Vec::with_capacity(3);
+
+        for dir in MISC_DIRS {
+            if search::contains_entry(&path, dir) {
+                rm_paths.push(path.join(PathBuf::from(dir)));
+            }
+        }
         Project::new(path, ProjectType::Misc, rm_paths)
     }
 
@@ -134,7 +174,7 @@ impl Project {
     }
 }
 
-#[derive(Debug, Copy, Clone, Ord, Eq, PartialOrd, PartialEq)]
+#[derive(Debug, Copy, Clone, Hash, Ord, Eq, PartialOrd, PartialEq)]
 pub enum ProjectType {
     Cargo,
     Composer,
