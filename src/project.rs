@@ -9,18 +9,18 @@ use std::time::{Duration, SystemTime};
 
 use crate::search;
 
-pub const PROJECT_IDENTIFIERS: &[(ProjectType, &[&str])] = &[
-    (ProjectType::Cargo,    &["Cargo.toml"]),
-    (ProjectType::Composer, &["composer.json"]),
-    (ProjectType::Dotnet,   &[".csproj"]),
-    (ProjectType::Golang,   &["go.mod"]),
-    (ProjectType::Gradle,   &["build.gradle",
-                              "build.gradle.kts"]),
-    (ProjectType::Misc,     &["bin",
-                              "build",
-                              "dist"]),
-    (ProjectType::Mix,      &["mix.exs"]),
-    (ProjectType::Node,     &["package.json"]),
+pub const PROJECT_IDENTIFIERS: &[(ProjectType, bool, &[&str])] = &[
+    (ProjectType::Cargo,    false, &["Cargo.toml"]),
+    (ProjectType::Composer, false, &["composer.json"]),
+    (ProjectType::Dotnet,   true,  &[".csproj"]),
+    (ProjectType::Golang,   false, &["go.mod"]),
+    (ProjectType::Gradle,   false, &["build.gradle",
+                                     "build.gradle.kts"]),
+    (ProjectType::Misc,     false, &["bin",
+                                     "build",
+                                     "dist"]),
+    (ProjectType::Mix,      false, &["mix.exs"]),
+    (ProjectType::Node,     false, &["package.json"]),
 ];
 
 pub const PROJECT_CONSTRUCTORS: LazyLock<HashMap<ProjectType, fn(PathBuf) -> Project>> = LazyLock::new(|| {

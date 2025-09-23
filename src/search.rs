@@ -49,9 +49,9 @@ pub fn find_git_projects(path: &Path) -> Vec<Project> {
 }
 
 fn check_for_project(path: PathBuf) -> Option<Project> {
-    for (pt, idents) in project::PROJECT_IDENTIFIERS {
+    for (pt, use_suffix, idents) in project::PROJECT_IDENTIFIERS {
         for ident in *idents {
-            if contains_entry(&path, ident) { // .csproj is special case (should use regex)
+            if contains_entry(&path, ident) || *use_suffix && contains_file_suffix(&path, ident) {
                 return Some(project::PROJECT_CONSTRUCTORS.get(pt).unwrap()(path));
             }
         }
@@ -70,7 +70,7 @@ pub fn contains_entry(path: &Path, entry: &str) -> bool {
     if let Ok(val) = res { val } else { false }
 }
 
-fn contains_file_regex(path: &Path, pattern: &str) -> bool {
+fn contains_file_suffix(path: &Path, pattern: &str) -> bool {
     let entries = path.read_dir();
     if entries.is_err() { return false; }
 
