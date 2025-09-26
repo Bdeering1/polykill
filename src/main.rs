@@ -2,6 +2,7 @@ use std::{path::Path, cmp::Reverse};
 use clap::Parser;
 use console::Term;
 
+mod auto;
 mod menu;
 mod project;
 mod search;
@@ -24,6 +25,10 @@ pub struct PolykillArgs {
     /// Automatically clean up older project artifacts (no menu)
     #[arg(short, long)]
     pub auto: bool,
+
+    /// Register system service to run automatically on some interval (days)
+    #[arg(long, default_value_t = 0)]
+    pub register: u64,
 
     /// Minimum threshold for artifact cleanup (days since last modified)
     #[arg(short, long, default_value_t = 60)]
@@ -91,24 +96,21 @@ fn main() {
         println!("{}{}No projects found.", menu::ANSI_CLEAR_SCREEN, ANSI_SHOW_CURSOR);
         return;
     }
-
-    if !args.unsorted {
-        projects.sort_unstable_by_key(|p| Reverse(p.rm_size));
-        projects.sort_by_key(|p| p.project_type);
-    }
     
     if args.dry_run { return; }
 
     if args.auto {
-        for mut p in projects {
-            if p.last_modified == None || p.last_modified.unwrap() < args.threshold { continue; }
-
-            let message = p.delete();
-            if let Some(msg) = message {
-                println!("{}", msg);
-            }
-        }
+        auto::run(projects, args.threshold);
         return;
+    }
+
+    if args.register != 0 {
+        auto::register(args.threshold);
+    }
+
+    if !args.unsorted {
+        projects.sort_unstable_by_key(|p| Reverse(p.rm_size));
+        projects.sort_by_key(|p| p.project_type);
     }
 
     menu::project_menu(projects, args.verbose);

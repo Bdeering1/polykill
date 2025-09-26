@@ -10,17 +10,17 @@ use std::time::{Duration, SystemTime};
 use crate::search;
 
 pub const PROJECT_IDENTIFIERS: &[(ProjectType, bool, &[&str])] = &[
+    (ProjectType::Node,     false, &["package.json"]),
     (ProjectType::Cargo,    false, &["Cargo.toml"]),
-    (ProjectType::Composer, false, &["composer.json"]),
-    (ProjectType::Dotnet,   true,  &[".csproj"]),
     (ProjectType::Golang,   false, &["go.mod"]),
-    (ProjectType::Gradle,   false, &["build.gradle",
-                                     "build.gradle.kts"]),
     (ProjectType::Misc,     false, &["bin",
                                      "build",
                                      "dist"]),
+    (ProjectType::Dotnet,   true,  &[".csproj"]),
+    (ProjectType::Gradle,   false, &["build.gradle",
+                                     "build.gradle.kts"]),
     (ProjectType::Mix,      false, &["mix.exs"]),
-    (ProjectType::Node,     false, &["package.json"]),
+    (ProjectType::Composer, false, &["composer.json"]),
 ];
 
 pub const PROJECT_CONSTRUCTORS: LazyLock<HashMap<ProjectType, fn(PathBuf) -> Project>> = LazyLock::new(|| {
@@ -140,6 +140,8 @@ impl Project {
                 Err(e) => message += format!("Unable to remove {:?}: {}\n", path, e).as_str(),
             }
         }
+
+        self.rm_size = get_rm_size(&self.rm_paths);
         self.rm_size_str = bytes_to_string(self.rm_size);
         self.last_modified = get_time_since_last_mod(&self.path);
 
