@@ -27,11 +27,11 @@ pub struct PolykillArgs {
     pub auto: bool,
 
     /// Register system service to run automatically on some interval (days)
-    #[arg(long, default_value_t = 0)]
-    pub register: u64,
+    #[arg(long)]
+    pub register: bool,
 
     /// Minimum threshold for artifact cleanup (days since last modified)
-    #[arg(short, long, default_value_t = 60)]
+    #[arg(short, long, default_value_t = auto::DEFAULT_CLEANUP_THRESHOLD)]
     pub threshold: u64,
 
     /// Hide projects with zero possible disk savings
@@ -62,6 +62,11 @@ fn main() {
     }
     if path.is_file() {
         println!("'{}' is a file, please specify a directory.", path.display());
+        return;
+    }
+
+    if args.register {
+        auto::register(args.threshold);
         return;
     }
 
@@ -102,10 +107,6 @@ fn main() {
     if args.auto {
         auto::run(projects, args.threshold);
         return;
-    }
-
-    if args.register != 0 {
-        auto::register(args.threshold);
     }
 
     if !args.unsorted {
