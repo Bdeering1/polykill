@@ -1,4 +1,4 @@
-use std::{path::Path, cmp::Reverse};
+use std::{path::PathBuf, cmp::Reverse};
 use clap::Parser;
 use console::Term;
 
@@ -14,9 +14,9 @@ const ANSI_SHOW_CURSOR: &str = "\x1b[?25h";
 #[clap(author, version, verbatim_doc_comment)]
 /// Remove unwanted dependencies and build artifacts from local projects
 pub struct PolykillArgs {
-    #[clap(default_value_t = String::from("."))]
+    #[clap(default_value = ".")]
     /// Directory to search for projects
-    pub dir: String,
+    pub dirs: Vec<String>,
 
     /// Verbose output
     #[arg(short, long)]
@@ -55,14 +55,19 @@ fn main() {
     const MAX_SEARCH_DEPTH: u32 = 10; // only applies if --no-vcs flag is specified
 
     let args = PolykillArgs::parse();
-    let path = Path::new(args.dir.as_str());
-    if !path.exists() {
-        println!("Path '{}' does not exist.", path.display());
-        return;
-    }
-    if path.is_file() {
-        println!("'{}' is a file, please specify a directory.", path.display());
-        return;
+
+    let mut search_paths = Vec::with_capacity(args.dirs.len());
+    for path_str in args.dirs {
+        let path = PathBuf::from(path_str);
+        if !path.exists() {
+            println!("Path '{}' does not exist.", path.display());
+            return;
+        }
+        if !path.is_dir() {
+            println!("'{}' is a file, please specify a directory.", path.display());
+            return;
+        }
+        search_paths.push(path);
     }
 
     if args.register {
@@ -87,12 +92,14 @@ fn main() {
         );
     }
 
-    let mut projects =
+    let mut projects = Vec::<project::Project>::new();
+    for path in search_paths {
         if args.no_vcs {
-            search::find_projects(path,MAX_SEARCH_DEPTH)
+            projects.append(&mut search::find_projects(&path, MAX_SEARCH_DEPTH));
         } else {
-            search::find_git_projects(path)
-        };
+            projects.append(&mut search::find_git_projects(&path));
+        }
+    }
 
     if args.skip_empty {
         projects.retain(|p| p.rm_size > 0);
