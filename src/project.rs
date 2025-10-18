@@ -37,6 +37,9 @@ pub const PROJECT_CONSTRUCTORS: LazyLock<HashMap<ProjectType, fn(PathBuf) -> Pro
     artifacts
 });
 
+pub const LAST_MODIFIED_SEARCH_DEPTH: usize = 2;
+pub const LAST_MODIFIED_PRUNE_THRESHOLD: u64 = 0;
+
 #[derive(Debug)]
 pub struct Project {
     pub path: PathBuf,
@@ -51,7 +54,7 @@ impl Project {
     pub fn new(path: PathBuf, project_type: ProjectType, rm_paths: Vec<PathBuf>) -> Project {
         let rm_size = get_rm_size(&rm_paths);
         let rm_size_str = bytes_to_string(rm_size);
-        let last_modified = get_time_since_last_mod(&path);
+        let last_modified = get_project_last_modified(&path, LAST_MODIFIED_SEARCH_DEPTH);
         Project {
             path,
             project_type,
@@ -143,7 +146,7 @@ impl Project {
 
         self.rm_size = get_rm_size(&self.rm_paths);
         self.rm_size_str = bytes_to_string(self.rm_size);
-        self.last_modified = get_time_since_last_mod(&self.path);
+        self.last_modified = Some(0);
 
         message.pop();
         if message.is_empty() {
@@ -215,6 +218,42 @@ fn get_time_since_last_mod(path: &PathBuf) -> Option<u64> {
 
     if time_since.is_err() { return None; }
     Some(time_since.unwrap().as_secs() / Duration::from_secs(SECONDS_PER_DAY).as_secs())
+}
+
+fn get_project_last_modified(path: &PathBuf, depth: usize) -> Option<u64> {
+    if depth == 0 { return get_time_since_last_mod(&path) }
+
+    let mut most_recent = get_time_since_last_mod(&path).unwrap_or(u64::MAX);
+    println!("Project: {} Parent dir most recent: {} (depth {})", path.display(), most_recent, depth);
+
+    let entries = path.read_dir();
+    if entries.is_err() { return None }
+
+    for entry in entries.unwrap() {
+        if entry.is_err() { continue; }
+        if path.is_dir() && path.file_name().unwrap().as_encoded_bytes()[0] == b'.' { continue; }
+
+        let path = entry.unwrap().path();
+        let modified =
+            if path.is_dir() {
+                get_project_last_modified(&path, depth - 1)
+            } else {
+                get_time_since_last_mod(&path)
+            };
+
+        if modified.is_none() { continue; }
+        let modified = modified.unwrap();
+
+        if modified < most_recent {
+            most_recent = modified;
+        }
+
+        if most_recent < LAST_MODIFIED_PRUNE_THRESHOLD  {
+            return Some(most_recent);
+        }
+    }
+
+    return Some(most_recent);
 }
 
 fn get_rm_size(rm_paths: &Vec<PathBuf>) -> u64 {
