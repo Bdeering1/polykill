@@ -26,13 +26,21 @@ pub struct PolykillArgs {
     #[arg(short, long)]
     pub auto: bool,
 
+    /// Minimum threshold for artifact cleanup (days since last modified)
+    #[arg(short, long, default_value_t = auto::DEFAULT_CLEANUP_THRESHOLD)]
+    pub threshold: u64,
+
     /// Register system service to run automatically on some interval (days)
     #[arg(long)]
     pub register: bool,
 
-    /// Minimum threshold for artifact cleanup (days since last modified)
-    #[arg(short, long, default_value_t = auto::DEFAULT_CLEANUP_THRESHOLD)]
-    pub threshold: u64,
+    /// Remove registered system service
+    #[arg(long)]
+    pub unregister: bool,
+
+    /// Get status of registered system service
+    #[arg(long)]
+    pub status: bool,
 
     /// Hide projects with zero possible disk savings
     #[arg(short, long)]
@@ -71,7 +79,15 @@ fn main() {
     }
 
     if args.register {
-        auto::register(args.threshold);
+        auto::register(search_paths, args.threshold);
+        return;
+    }
+    if args.unregister {
+        auto::unregister();
+        return;
+    }
+    if args.status{
+        auto::status();
         return;
     }
 
