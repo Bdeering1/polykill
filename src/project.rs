@@ -224,7 +224,6 @@ fn get_project_last_modified(path: &PathBuf, depth: usize) -> Option<u64> {
     if depth == 0 { return get_time_since_last_mod(&path) }
 
     let mut most_recent = get_time_since_last_mod(&path).unwrap_or(u64::MAX);
-    println!("Project: {} Parent dir most recent: {} (depth {})", path.display(), most_recent, depth);
 
     let entries = path.read_dir();
     if entries.is_err() { return None }

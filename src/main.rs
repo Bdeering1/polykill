@@ -117,6 +117,11 @@ fn main() {
         }
     }
 
+    if args.auto {
+        auto::run(projects, args.threshold);
+        return;
+    }
+
     if args.skip_empty {
         projects.retain(|p| p.rm_size > 0);
     }
@@ -126,11 +131,6 @@ fn main() {
     }
     
     if args.dry_run { return; }
-
-    if args.auto {
-        auto::run(projects, args.threshold);
-        return;
-    }
 
     if !args.unsorted {
         projects.sort_unstable_by_key(|p| Reverse(p.rm_size));
