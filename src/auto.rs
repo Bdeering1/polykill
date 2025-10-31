@@ -47,7 +47,7 @@ pub fn register(search_paths: Vec<PathBuf>, mut threshold: u64) {
     paths_xml = paths_xml.trim().to_owned();
 
     loop {
-        print!("How often should polykill be run? [default: {}]: ", DEFAULT_INTERVAL);
+        print!("How often should polykill be run? [default: {} days]: ", DEFAULT_INTERVAL);
         stdout().flush().unwrap();
 
         String::clear(&mut input);
@@ -75,22 +75,6 @@ pub fn register(search_paths: Vec<PathBuf>, mut threshold: u64) {
                 threshold = num;
                 break;
             }
-        }
-    }
-
-    println!("Polykill will register a system service to run every {} days and remove artifacts from projects last modified >= {} days ago.", interval, threshold);
-    loop {
-        print!("Is this okay? [y/n]: ");
-        stdout().flush().unwrap();
-
-        String::clear(&mut input);
-        stdin().read_line(&mut input).expect("Error: unable to read user input");
-        input = input.trim().to_lowercase().to_owned();
-
-        match input.as_str() {
-            "y" => break, 
-            "n" => return,
-            _ => continue,
         }
     }
 
@@ -209,7 +193,7 @@ fn uninstall() -> Result<(), Box<dyn std::error::Error>> {
     let already_unloaded = stderr.contains("Could not find specified service")
         || stderr.contains("No such process");
 
-    if !already_unloaded && (!output.status.success() || stderr.contains("failed") || stderr.contains("error")) {
+    if !already_unloaded && !(output.status.success() || stderr.contains("failed") || stderr.contains("error")) {
         return Err(format!("launchctl unload failed: {}", stderr).into())
     }
 
@@ -232,27 +216,39 @@ fn service_status() -> Result<String, Box<dyn std::error::Error>> {
 #[cfg(target_os = "linux")]
 fn install(inteval: u64, threshold: u64) -> Result<(), Box<dyn std::error::Error>> {
     println!("Not yet supported on this platform.");
+
+    OK(())
 }
 #[cfg(target_os = "linux")]
 fn uninstall() -> Result<(), Box<dyn std::error::Error>> {
     println!("Not yet supported on this platform.");
+
+    Ok(())
 }
 #[cfg(target_os = "linux")]
 fn service_status() -> Result<String, Box<dyn std::error::Error>>  {
     println!("Not yet supported on this platform.");
+
+    Ok(())
 }
 
 #[cfg(target_os = "windows")]
 fn install(interval: u64, threshold: u64) -> Result<(), Box<dyn std::error::Error>> {
     println!("Not yet supported on this platform.");
+
+    Ok(())
 }
 #[cfg(target_os = "windows")]
 fn uninstall() -> Result<(), Box<dyn std::error::Error>> {
     println!("Not yet supported on this platform.");
+
+    Ok(())
 }
 #[cfg(target_os = "windows")]
 fn service_status() -> Result<String, Box<dyn std::error::Error>>  {
     println!("Not yet supported on this platform.");
+
+    Ok(())
 }
 
 fn to_absolute_path(path: &Path) -> Result<PathBuf, Box<dyn std::error::Error>> {
