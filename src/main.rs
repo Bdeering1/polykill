@@ -26,7 +26,7 @@ pub struct PolykillArgs {
     #[arg(short, long)]
     pub auto: bool,
 
-    /// Minimum threshold for artifact cleanup (days since last modified)
+    /// Minimum threshold for automatic artifact cleanup (days since last modified)
     #[arg(short, long, default_value_t = auto::DEFAULT_CLEANUP_THRESHOLD)]
     pub threshold: u64,
 
@@ -38,9 +38,13 @@ pub struct PolykillArgs {
     #[arg(long)]
     pub unregister: bool,
 
-    /// Get status of registered system service
+    /// Check if a polykill service exists, print info if found
     #[arg(long)]
     pub status: bool,
+
+    /// Print polykill service logs, if any
+    #[arg(long)]
+    pub logs: bool,
 
     /// Hide projects with zero possible disk savings
     #[arg(short, long)]
@@ -63,6 +67,11 @@ fn main() {
     const MAX_SEARCH_DEPTH: u32 = 10; // only applies if --no-vcs flag is specified
 
     let args = PolykillArgs::parse();
+
+    if args.logs {
+        auto::logs();
+        return;
+    }
 
     let mut search_paths = Vec::with_capacity(args.dirs.len());
     for path_str in args.dirs {

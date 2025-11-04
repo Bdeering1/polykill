@@ -1,3 +1,4 @@
+use chrono::Local;
 use std::collections::HashMap;
 use std::env::current_dir;
 use std::io::{stdin, stdout, Write};
@@ -13,9 +14,14 @@ pub const DEFAULT_INTERVAL: u64 = 7;
 const SECONDS_PER_DAY: u64 = 86400;
 const SERVICE_NAME: &str = "polykill";
 const SERVICE_LABEL: &str = "io.github.bdeering1.polykill";
+
+#[cfg(target_os = "macos")]
 const LAUNCHD_TEMPLATE: &str = include_str!("../templates/macos/launchd.plist.template");
 
 pub fn run(projects: Vec<Project>, threshold: u64) {
+    let local_time = Local::now().to_rfc3339();
+    println!("[{}] Running polykill system service.", local_time);
+
     for mut p in projects {
         if p.rm_size == 0 || p.last_modified == None || p.last_modified.unwrap() < threshold { continue; }
 
@@ -63,7 +69,7 @@ pub fn register(search_paths: Vec<PathBuf>, mut threshold: u64) {
 
     if threshold == DEFAULT_CLEANUP_THRESHOLD {
         loop {
-            print!("Delete artifacts for projects that were last modified more than how many days ago? [default: {}]: ", DEFAULT_CLEANUP_THRESHOLD);
+            print!("Run on projects that were last modified more than how many days ago? [default: {}]: ", DEFAULT_CLEANUP_THRESHOLD);
             stdout().flush().unwrap();
 
             String::clear(&mut input);
@@ -78,12 +84,14 @@ pub fn register(search_paths: Vec<PathBuf>, mut threshold: u64) {
         }
     }
 
-    if let Err(e) = install(paths_xml, interval, threshold) {
+    let install_path = install(paths_xml, interval, threshold);
+    if let Err(e) = &install_path {
         println!("Unable to register system service: {}", e);
         return;
     }
 
-    println!("Successfully registered system service!");
+    let install_path = install_path.unwrap();
+    println!("Successfully registered system service at {}", install_path.to_str().unwrap());
 }
 
 pub fn unregister() {
@@ -97,16 +105,31 @@ pub fn unregister() {
 
 pub fn status() {
     let res = service_status();
-    if let Err(e) = res {
-        println!("Unable to get service status: {}", e);
+    if res == None {
+        println!("Service not running or not found");
         return;
     }
 
-    println!("{}", res.unwrap());
+    println!("Found registered system service.\n\n{}", res.unwrap());
+}
+
+pub fn logs() {
+    let logs = log();
+    if let Err(e) = &logs {
+        println!("Failed to retrieve service logs: {}", e);
+    }
+
+    let logs = logs.unwrap();
+    if logs.len() == 0 {
+        println!("No service logs found.");
+        return;
+    }
+
+    print!("{}", logs);
 }
 
 #[cfg(target_os = "macos")]
-fn install(paths_xml: String, interval: u64, threshold: u64) -> Result<(), Box<dyn std::error::Error>> {
+fn install(paths_xml: String, interval: u64, threshold: u64) -> Result<PathBuf, Box<dyn std::error::Error>> {
     let status_output = Command::new("launchctl")
         .args(["list", SERVICE_LABEL])
         .output()?;
@@ -132,10 +155,10 @@ fn install(paths_xml: String, interval: u64, threshold: u64) -> Result<(), Box<d
     let seconds_interval = (interval * SECONDS_PER_DAY).to_string();
     let cleanup_threshold = threshold.to_string();
 
-    let home_dir = dirs::home_dir().ok_or("Could not find home directory")?;
     let binary_path = std::env::current_exe()?;
 
-    let log_dir = home_dir.join("Library/Logs/polykill");
+    let log_dir = get_log_dir()?;
+    let log_path = format!("{}/{}.log", log_dir.to_str().unwrap(), SERVICE_NAME);
     create_dir_all(&log_dir)?;
 
     let mut template = LAUNCHD_TEMPLATE.to_owned();
@@ -143,7 +166,7 @@ fn install(paths_xml: String, interval: u64, threshold: u64) -> Result<(), Box<d
         ("{{SERVICE_NAME}}", SERVICE_NAME),
         ("{{SERVICE_LABEL}}", SERVICE_LABEL),
         ("{{BINARY_PATH}}", binary_path.to_str().unwrap()),
-        ("{{LOG_DIR}}", log_dir.to_str().unwrap()),
+        ("{{LOG_PATH}}", &log_path),
         ("{{CLEANUP_THRESHOLD}}", &cleanup_threshold),
         ("{{INTERVAL_SECONDS}}", &seconds_interval),
         ("{{SEARCH_PATHS}}", &paths_xml),
@@ -153,7 +176,7 @@ fn install(paths_xml: String, interval: u64, threshold: u64) -> Result<(), Box<d
         template = template.replace(placeholder, value);
     }
 
-    let launch_agents_dir = home_dir.join("Library/LaunchAgents");
+    let launch_agents_dir = get_home_dir()?.join("Library/LaunchAgents");
     create_dir_all(&launch_agents_dir)?;
 
     let plist_path = launch_agents_dir.join(format!("{}.plist", SERVICE_LABEL));
@@ -172,7 +195,7 @@ fn install(paths_xml: String, interval: u64, threshold: u64) -> Result<(), Box<d
         println!("Warning during service load: {}", stderr);
     }
 
-    Ok(())
+    Ok(plist_path)
 }
 
 #[cfg(target_os = "macos")]
@@ -202,53 +225,77 @@ fn uninstall() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[cfg(target_os = "macos")]
-fn service_status() -> Result<String, Box<dyn std::error::Error>> {
+fn service_status() -> Option<String> {
     let output = Command::new("launchctl")
         .args(["list", SERVICE_LABEL])
+        .output();
+    if let Err(_) = output { return None; }
+
+    let output = output.unwrap();
+    if !output.status.success() { return None; }
+
+    Some(String::from_utf8_lossy(&output.stdout).to_string())
+}
+
+#[cfg(target_os = "macos")]
+fn log() -> Result<String, Box<dyn std::error::Error>> {
+    let log_path = format!("{}/{}.log", get_log_dir()?.to_str().unwrap(), SERVICE_NAME);
+    let output = Command::new("tail")
+        .args(["--lines", "15", &log_path])
         .output()?;
+    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
 
-    if !output.status.success() {
-        return Ok("Service not running or not found".to_owned());
-    }
-    Ok(String::from_utf8_lossy(&output.stdout).to_string())
+    Ok(stdout)
+}
+
+#[cfg(target_os = "macos")]
+fn get_log_dir() -> Result<PathBuf, Box<dyn std::error::Error>> {
+    let log_dir = get_home_dir()?.join("Library/Logs/polykill");
+
+    Ok(log_dir)
+}
+
+#[cfg(target_os = "macos")]
+fn get_home_dir() -> Result<PathBuf, Box<dyn std::error::Error>> {
+    dirs::home_dir().ok_or("Could not find home directory".into())
 }
 
 #[cfg(target_os = "linux")]
-fn install(inteval: u64, threshold: u64) -> Result<(), Box<dyn std::error::Error>> {
-    println!("Not yet supported on this platform.");
-
-    OK(())
+fn install(inteval: u64, threshold: u64) -> Result<PathBuf, Box<dyn std::error::Error>> {
+    Err("Not yet supported on this platform.".into())
 }
 #[cfg(target_os = "linux")]
 fn uninstall() -> Result<(), Box<dyn std::error::Error>> {
-    println!("Not yet supported on this platform.");
-
-    Ok(())
+    Err("Not yet supported on this platform.".into())
 }
 #[cfg(target_os = "linux")]
-fn service_status() -> Result<String, Box<dyn std::error::Error>>  {
+fn service_status() -> Option<String> {
     println!("Not yet supported on this platform.");
 
-    Ok(())
+    None
+}
+#[cfg(target_os = "linux")]
+fn log() -> Result<(), Box<dyn std::error::Error>> {
+    Err("Not yet supported on this platform.".into())
 }
 
 #[cfg(target_os = "windows")]
-fn install(interval: u64, threshold: u64) -> Result<(), Box<dyn std::error::Error>> {
-    println!("Not yet supported on this platform.");
-
-    Ok(())
+fn install(interval: u64, threshold: u64) -> Result<PathBuf, Box<dyn std::error::Error>> {
+    Err("Not yet supported on this platform.".into())
 }
 #[cfg(target_os = "windows")]
 fn uninstall() -> Result<(), Box<dyn std::error::Error>> {
-    println!("Not yet supported on this platform.");
-
-    Ok(())
+    Err("Not yet supported on this platform.".into())
 }
 #[cfg(target_os = "windows")]
-fn service_status() -> Result<String, Box<dyn std::error::Error>>  {
+fn service_status() -> Option<String> {
     println!("Not yet supported on this platform.");
 
-    Ok(())
+    None
+}
+#[cfg(target_os = "windows")]
+fn log() -> Result<(), Box<dyn std::error::Error>> {
+    Err("Not yet supported on this platform.".into())
 }
 
 fn to_absolute_path(path: &Path) -> Result<PathBuf, Box<dyn std::error::Error>> {

@@ -18,9 +18,9 @@
     <integer>{{INTERVAL_SECONDS}}</integer>
     
     <key>StandardOutPath</key>
-    <string>{{LOG_DIR}}/{{SERVICE_NAME}}.log</string>
+    <string>{{LOG_PATH}}</string>
 
     <key>StandardErrorPath</key>
-    <string>{{LOG_DIR}}/{{SERVICE_NAME}}.log</string>
+    <string>{{LOG_PATH}}</string>
 </dict>
 </plist>
