@@ -64,8 +64,9 @@ When the search has completed, navigate the menu using the following controls:
 | -v, --verbose    | Verbose output                                                    |
 | -a, --auto       | Automatically clean up older project artifacts (no menu)          |
 | -t, --threshold  | Minimum threshold for automatic artifact cleanup (days since last modified) |
-| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--register | Register system service to run automatically on some interval (days) |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--register | Register system service to run polykill automatically  |
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--unregister | Remove registered system service  |
+| -i, --interval | Interval (in days) to run system service on                         |
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--status | Check if a polykill service exists, print info if found |
 | -s, --skip-empty | Hide projects with zero possible disk savings                     |
 | -u, --unsorted   | Don't sort projects                                               |

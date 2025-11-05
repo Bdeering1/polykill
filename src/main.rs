@@ -30,13 +30,17 @@ pub struct PolykillArgs {
     #[arg(short, long, default_value_t = auto::DEFAULT_CLEANUP_THRESHOLD)]
     pub threshold: u64,
 
-    /// Register system service to run automatically on some interval (days)
+    /// Register system service to run polykill automatically
     #[arg(long)]
     pub register: bool,
 
     /// Remove registered system service
     #[arg(long)]
     pub unregister: bool,
+
+    /// Interval (in days) to run systen service on
+    #[arg(short, long, default_value_t = auto::DEFAULT_INTERVAL)]
+    pub interval: u64,
 
     /// Check if a polykill service exists, print info if found
     #[arg(long)]
@@ -88,7 +92,7 @@ fn main() {
     }
 
     if args.register {
-        auto::register(search_paths, args.threshold);
+        auto::register(search_paths, args.interval, args.threshold);
         return;
     }
     if args.unregister {

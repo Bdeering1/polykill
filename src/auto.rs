@@ -18,28 +18,38 @@ const SERVICE_LABEL: &str = "io.github.bdeering1.polykill";
 #[cfg(target_os = "macos")]
 const LAUNCHD_TEMPLATE: &str = include_str!("../templates/macos/launchd.plist.template");
 
-pub fn run(projects: Vec<Project>, threshold: u64) {
-    let local_time = Local::now().to_rfc3339();
-    println!("[{}] Running polykill system service.", local_time);
+pub fn run(mut projects: Vec<Project>, threshold: u64) {
+    log("Running polykill system service.");
 
-    for mut p in projects {
+    let mut cleaned = 0;
+    for p in &mut projects {
         if p.rm_size == 0 || p.last_modified == None || p.last_modified.unwrap() < threshold { continue; }
+        cleaned += 1;
 
         let message = p.delete();
         if let Some(msg) = message {
-            println!("{}", msg);
+            let msg = msg.replace("\n", ",");
+            log(&msg);
         }
     }
+
+    let summary = format!("Found {} projects, cleaned up {}.", projects.len(), cleaned);
+    log(&summary);
 }
 
-pub fn register(search_paths: Vec<PathBuf>, mut threshold: u64) {
-    let mut interval = DEFAULT_INTERVAL;
+pub fn register(search_paths: Vec<PathBuf>, mut interval: u64, mut threshold: u64) {
     let mut input = String::new();
 
     let abs_paths: Vec<PathBuf> = search_paths
         .iter()
         .map(|p| to_absolute_path(p).unwrap())
         .collect();
+
+    println!("Service will search the following directories:");
+    for p in &abs_paths {
+        println!("{}", p.to_string_lossy());
+    }
+    println!();
 
     let mut paths_xml = String::from("");
     for p in abs_paths {
@@ -52,18 +62,20 @@ pub fn register(search_paths: Vec<PathBuf>, mut threshold: u64) {
     }
     paths_xml = paths_xml.trim().to_owned();
 
-    loop {
-        print!("How often should polykill be run? [default: {} days]: ", DEFAULT_INTERVAL);
-        stdout().flush().unwrap();
+    if interval == DEFAULT_INTERVAL {
+        loop {
+            print!("How often should polykill be run (days)? [default: {}]: ", DEFAULT_INTERVAL);
+            stdout().flush().unwrap();
 
-        String::clear(&mut input);
-        stdin().read_line(&mut input).expect("Error: unable to read user input");
-        input = input.trim().to_owned();
+            String::clear(&mut input);
+            stdin().read_line(&mut input).expect("Error: unable to read user input");
+            input = input.trim().to_owned();
 
-        if input.len() == 0 { break; }
-        if let Ok(num) = input.parse() {
-            interval = num;
-            break;
+            if input.len() == 0 { break; }
+            if let Ok(num) = input.parse() {
+                interval = num;
+                break;
+            }
         }
     }
 
@@ -114,7 +126,7 @@ pub fn status() {
 }
 
 pub fn logs() {
-    let logs = log();
+    let logs = service_logs();
     if let Err(e) = &logs {
         println!("Failed to retrieve service logs: {}", e);
     }
@@ -137,7 +149,7 @@ fn install(paths_xml: String, interval: u64, threshold: u64) -> Result<PathBuf, 
         let mut input = String::new();
 
         loop {
-            print!("Service is already registered. Remove and re-register? [y/n]: ");
+            print!("A service is already registered. Remove and re-register? [y/n]: ");
             stdout().flush().unwrap();
 
             String::clear(&mut input);
@@ -238,7 +250,7 @@ fn service_status() -> Option<String> {
 }
 
 #[cfg(target_os = "macos")]
-fn log() -> Result<String, Box<dyn std::error::Error>> {
+fn service_logs() -> Result<String, Box<dyn std::error::Error>> {
     let log_path = format!("{}/{}.log", get_log_dir()?.to_str().unwrap(), SERVICE_NAME);
     let output = Command::new("tail")
         .args(["--lines", "15", &log_path])
@@ -275,7 +287,7 @@ fn service_status() -> Option<String> {
     None
 }
 #[cfg(target_os = "linux")]
-fn log() -> Result<(), Box<dyn std::error::Error>> {
+fn servce_logs() -> Result<(), Box<dyn std::error::Error>> {
     Err("Not yet supported on this platform.".into())
 }
 
@@ -294,7 +306,7 @@ fn service_status() -> Option<String> {
     None
 }
 #[cfg(target_os = "windows")]
-fn log() -> Result<(), Box<dyn std::error::Error>> {
+fn service_logs() -> Result<(), Box<dyn std::error::Error>> {
     Err("Not yet supported on this platform.".into())
 }
 
@@ -315,4 +327,9 @@ fn xml_escape(s: &str) -> String {
      .replace('>', "&gt;")
      .replace('"', "&quot;")
      .replace('\'', "&apos;")
+}
+
+fn log(msg: &str) {
+    let local_time = Local::now().to_rfc3339();
+    println!("[{}] {}", local_time, msg);
 }
