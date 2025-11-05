@@ -6,6 +6,7 @@ mod auto;
 mod menu;
 mod project;
 mod search;
+mod service;
 
 const ANSI_HIDE_CURSOR: &str = "\x1b[?25l";
 const ANSI_SHOW_CURSOR: &str = "\x1b[?25h";
@@ -27,7 +28,7 @@ pub struct PolykillArgs {
     pub auto: bool,
 
     /// Minimum threshold for automatic artifact cleanup (days since last modified)
-    #[arg(short, long, default_value_t = auto::DEFAULT_CLEANUP_THRESHOLD)]
+    #[arg(short, long, default_value_t = service::DEFAULT_CLEANUP_THRESHOLD)]
     pub threshold: u64,
 
     /// Register system service to run polykill automatically
@@ -39,7 +40,7 @@ pub struct PolykillArgs {
     pub unregister: bool,
 
     /// Interval (in days) to run systen service on
-    #[arg(short, long, default_value_t = auto::DEFAULT_INTERVAL)]
+    #[arg(short, long, default_value_t = service::DEFAULT_INTERVAL)]
     pub interval: u64,
 
     /// Check if a polykill service exists, print info if found
@@ -73,7 +74,7 @@ fn main() {
     let args = PolykillArgs::parse();
 
     if args.logs {
-        auto::logs();
+        service::logs();
         return;
     }
 
@@ -92,15 +93,15 @@ fn main() {
     }
 
     if args.register {
-        auto::register(search_paths, args.interval, args.threshold);
+        service::register(search_paths, args.interval, args.threshold);
         return;
     }
     if args.unregister {
-        auto::unregister();
+        service::unregister();
         return;
     }
     if args.status{
-        auto::status();
+        service::status();
         return;
     }
 
