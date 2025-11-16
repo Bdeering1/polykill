@@ -16,7 +16,7 @@ const ANSI_SHOW_CURSOR: &str = "\x1b[?25h";
 /// Remove unwanted dependencies and build artifacts from local projects
 pub struct PolykillArgs {
     #[clap(default_value = ".")]
-    /// Directory to search for projects
+    /// List of directories to search for projects
     pub dirs: Vec<String>,
 
     /// Verbose output
@@ -27,7 +27,7 @@ pub struct PolykillArgs {
     #[arg(short, long)]
     pub auto: bool,
 
-    /// Minimum threshold for automatic artifact cleanup (days since last modified)
+    /// Minimum threshold for automatic cleanup (days since last modified)
     #[arg(short, long, default_value_t = service::DEFAULT_CLEANUP_THRESHOLD)]
     pub threshold: u64,
 
@@ -39,7 +39,7 @@ pub struct PolykillArgs {
     #[arg(long)]
     pub unregister: bool,
 
-    /// Interval (in days) to run systen service on
+    /// Interval (in days) to run system service on
     #[arg(short, long, default_value_t = service::DEFAULT_INTERVAL)]
     pub interval: u64,
 

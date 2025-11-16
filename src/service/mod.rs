@@ -36,7 +36,7 @@ pub fn register(search_paths: Vec<PathBuf>, mut interval: u64, mut threshold: u6
         .map(|p| to_absolute_path(p).unwrap())
         .collect();
 
-    println!("Service will search the following directories:");
+    println!("The service will search the following directories:");
     for p in &abs_paths {
         println!("{}", p.to_string_lossy());
     }
