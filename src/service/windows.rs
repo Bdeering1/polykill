@@ -1,9 +1,12 @@
 use std::error::Error;
+use std::path::PathBuf;
+
+use crate::service::ServiceManager;
 
 pub struct WindowsService {}
 
 impl ServiceManager for WindowsService {
-    fn install(search_paths: Vec<PathBuf>, interval: u64, threshold: u64) -> Result<PathBuf, Box<dyn Error>> {
+    fn install(_search_paths: Vec<PathBuf>, _interval: u64, _threshold: u64) -> Result<PathBuf, Box<dyn Error>> {
         Err("Not yet supported on this platform.".into())
     }
 

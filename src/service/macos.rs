@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fs::{create_dir_all, remove_file, write};
 use std::io::{stdin, stdout, Write};
-use std::path::{PathBuf};
+use std::path::PathBuf;
 use std::process::Command;
 
 use crate::service::ServiceManager;
