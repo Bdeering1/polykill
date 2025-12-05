@@ -20,7 +20,7 @@
 
                 src = ./.;
 
-                cargoHash = "sha256-OWNS8c8f6n/17mORbCMnI0qmOJftkwTHl+X1PB8c5bU=";
+                cargoHash = "sha256-bYBamcyHcIGTJBAkD7jYiSyTEXhtS8kNfM0D+BuDpw8=";
 
                 meta = {
                   description = cargoToml.package.description;
