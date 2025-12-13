@@ -1,0 +1,9 @@
+[Unit]
+Description=Polykill system service
+
+[Service]
+Type=oneshot
+ExecStart={{BINARY_PATH}} --auto --threshold {{CLEANUP_THRESHOLD}} {{SEARCH_PATHS}}
+User={{USER}}
+StandardOutput=append:{{LOG_PATH}}
+StandardError=append:{{LOG_PATH}}

@@ -1,0 +1,12 @@
+[Unit]
+Description=Poykill system service timer
+Requires={{SERVICE_NAME}}.service
+
+[Timer]
+OnStartupSec=5m
+OnUnitActiveSec={{INTERVAL_SECONDS}}s
+Persistent=true
+AccuracySec=1h
+
+[Install]
+WantedBy=timers.target
